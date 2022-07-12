@@ -22,7 +22,7 @@ AIxeleratorService::AIxeleratorService(AIFramework framework, std::string modelF
     switch(framework)
     {
         case AIX_TORCH:
-            torchInf_ = torchInference(modelFile, myGPUDevice_);
+            torchInf_ = std::make_unique<torchInference>(modelFile, myGPUDevice_);
             break;
         case AIX_TENSORFLOW:
             std::cout << "Tensorflow Init (NYI)" << std::endl;
@@ -35,7 +35,12 @@ AIxeleratorService::AIxeleratorService(AIFramework framework, std::string modelF
 
 AIxeleratorService::~AIxeleratorService()
 {
-    
+    delete[] inputCounts_;
+    delete[] inputDisplacements_;
+    delete[] outputCounts_;
+    delete[] outputDisplacements_;
+    delete[] inputTensorData_;
+    delete[] outputTensorData_;
 }
 
 int AIxeleratorService::deviceCount()
@@ -170,7 +175,7 @@ void AIxeleratorService::registerTensorShape(std::vector<int> &inputShape, std::
     switch(framework_)
     {
         case AIX_TORCH:
-            torchInf_.allocateTensors(inputShape, outputShape);
+            torchInf_->allocateTensors(inputShape, outputShape);
             break;
         case AIX_TENSORFLOW:
             std::cout << "Tensorflow registerDataSize (NYI)" << std::endl;
@@ -196,13 +201,14 @@ void AIxeleratorService::inference(double* input, int inputCount, double* output
 {
 
     gatherTensorData(input, inputCount);
+    int batchSize = 1000; // TODO: Properly calculate this value
 
     if (isGPUMaster_)
     {
         switch(framework_)
         {
             case AIX_TORCH:
-                torchInf_.forward(inputTensorData_, outputTensorData_);
+                torchInf_->forward(inputTensorData_, outputTensorData_, batchSize);
                 break;
             case AIX_TENSORFLOW:
                 std::cout << "Tensorflow Inference (NYI)" << std::endl;

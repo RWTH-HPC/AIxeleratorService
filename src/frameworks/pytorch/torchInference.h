@@ -18,6 +18,8 @@ private:
     torch::Tensor inputTensorSlice_;  //!< tensor slice for model input on CPU
     torch::Tensor inputTensorGPU_;  //!< tensor for model input on GPU
     torch::Tensor outputTensorGPU_; //!< tensor for model output on GPU
+    torch::TensorOptions options_{}; //!< tensor options
+    unsigned int nCellsBatch_ = 0; //! number of cells per batch
 
  public:
 

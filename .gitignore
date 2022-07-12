@@ -34,3 +34,9 @@
 
 # IDEs
 .vscode
+.history
+
+# cmake
+build
+install
+

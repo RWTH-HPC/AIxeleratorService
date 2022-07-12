@@ -1,7 +1,7 @@
 #include "torchInference.H"
 #include <torch/csrc/api/include/torch/utils.h>
-#include <c10/cuda/CUDACachingAllocator.h>
-#include <c10/cuda/CUDAFunctions.h>
+//#include <c10/cuda/CUDACachingAllocator.h>
+//#include <c10/cuda/CUDAFunctions.h>
 
 #include <iostream>
 #include <chrono>
@@ -9,9 +9,6 @@
 #include <mpi.h>
 
 //using namespace torch::indexing
-
-
-/* defineTypeNameAndDebug(torchInference, 0); */
 
 // deviceNum >= 0  --> GPU device ID
 // deviceNum < 0  --> e.g. -1 means no device ==> CPU
@@ -26,7 +23,7 @@ torchInference::torchInference( std::string modelFile, int deviceNum )
     //!< Load the torch model
     try {
         //!< Deserialize the ScriptModule from a file using torch::jit::load()
-        torchModel_ = torch::jit::load(modelFileName_);
+        torchModel_ = torch::jit::load(modelFile);
 
         if ( myDeviceNum_ < 0)
         {
@@ -42,12 +39,13 @@ torchInference::torchInference( std::string modelFile, int deviceNum )
     }
 
     // note (Fabian): maybe this should be kCUDA per default for GPU version?
-    torch::TensorOptions options(torch::kFloat64);
+    options_ = torch::TensorOptions(torch::kFloat64);
 
     // default init to zero-sized tensors
-    inputTensor_ = torch::ones({0}, options);
-    outputTensor_ = torch::ones({0}, options);
+    inputTensor_ = torch::ones({0}, options_);
+    outputTensor_ = torch::ones({0}, options_);
 
+    uint batchSize = 100;
     nCellsBatch_ = batchSize;
 }
 
@@ -55,10 +53,10 @@ torchInference::~torchInference()
 {
 }
 
-void allocateTensors(std::vector<int> &inputShape, std::vector<int> &outputShape)
+void torchInference::allocateTensors(std::vector<int> &inputShape, std::vector<int> &outputShape)
 {
-    inputTensor_ = torch::ones(intputShape, options);
-    outputTensor_ = torch::ones(outputShape, options);
+    //inputTensor_ = torch::ones(inputShape, options_);
+    //outputTensor_ = torch::ones(outputShape, options_);
 }
 
 void torchInference::batchedForward(int batchsize)
@@ -92,5 +90,3 @@ void torchInference::forward(double* inputTensor, double* outputTensor, int batc
 
     batchedForward(batchsize);
 }
-
-} //end namespace Foam

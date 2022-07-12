@@ -5,7 +5,7 @@ TorchModel::TorchModel(std::string modelFile) : AIModel(modelFile)
 
 }
 
-TorchModel::forward()
+void TorchModel::forward(double* inputTensorData, double* outputTensorData)
 {
     
 }

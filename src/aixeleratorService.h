@@ -32,7 +32,7 @@ class AIxeleratorService
         double* inputTensorData_;
         double* outputTensorData_;
 
-        torchInference torchInf_;
+        std::unique_ptr<torchInference> torchInf_ {};
 
         int deviceCount();
         void initWorkgroup(MPI_Comm& workGroupComm);
