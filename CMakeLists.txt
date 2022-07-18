@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.16.3)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # Add cmake convenience tool project
 # For more information see:
@@ -56,6 +56,7 @@ option(BUILD_TESTING "Build tests" OFF)
 option(AIxelerator_Packages "Configure package generation." OFF)
 
 # Print information about this configuration
+include(PrintTargetProperties)
 include(PrintHelper)
 print_configuration(
   ADDITIONAL
@@ -89,9 +90,6 @@ print_section("TARGETS & PACKAGES")
 #   )
 add_subdirectory(src)
 
-add_subdirectory(examples)
-# Setup MPI
-target_link_libraries(AIxelerator PRIVATE MPI::MPI_CXX)
-# Setup Torch
-target_link_libraries(AIxelerator PRIVATE ${TORCH_LIBRARIES})
-target_include_directories(AIxelerator PRIVATE ${TORCH_INCLUDE_DIRECTORIES})
+# add_subdirectory(examples)
+
+add_subdirectory(test)

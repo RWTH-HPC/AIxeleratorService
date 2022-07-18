@@ -1,37 +1,66 @@
-#include <string>
-#include <iostream>
-#include <torch/script.h>
-//#include <torch/torch.h> // maybe not needed?
+#pragma once
 
-template<typename T>
+#include <memory>
+#include <utility>
+#include <iostream>
+#include <filesystem> // C++17
+#include <map>
+#include <functional>
+#include <string>
+
+#include "abstractRegistry.h"
+#include "AIModelUtils.h"
+
+namespace fs = std::filesystem;
+
+namespace AIxelerator
+{
+
+class AIModelBase
+{
+public:    
+    AIModelBase() = default;
+    virtual ~AIModelBase() = default;
+
+    virtual void forward() = 0;
+};
+
+ // define registry
+ using AIModelEntry = abstractEntry<AIModelBase, std::string>;
+ using AIModelRegistry = abstractRegistry<AIModelBase, AIModelEntry, std::string>;
+
+ // convenience macro to register derived AIModels
+ #define REGISTER_AIMODEL(DERIVED_CLASS, CLASS_NAME) \
+ AIModelEntry entry##DERIVED_CLASS(&AIxelerator::abstractFactory<AIModelBase, DERIVED_CLASS, std::string>); \
+ AIModelRegistry add##DERIVED_CLASS(CLASS_NAME, entry##DERIVED_CLASS);
+
+
 class AIModel
 {
-    private:
-        std::string modelFile_; 
-        T model_;
+private:
+    
+    friend void forward( AIModel const& model)
+    {
+        model.pimpl->forward();
+    }
 
-    public:
-        AIModel() = delete;
-        AIModel(std::string modelFile = "")
-        {
-            initModel(modelFile);
-        }
+    std::unique_ptr<AIModelBase> pimpl;
 
-        void initModel(std::string modelFile)
-        {
-            modelFile_ = modelFile;
-            try
-            {
-                model_ = torch::jit::load(modelFile);
-            }
-            catch (const c10::Error& e)
-            {
-                std::cerr << "Error in AIModel while loading torch model from file: " << modelFile << std::endl << e.msg() << std::endl;
-            }
-        }
+public:
+    AIModel() = delete;
+    ~AIModel() = default;
+    AIModel(AIFramework framework, std::string filename);   
+    AIModel(std::string framework_name, std::string filename);    
+    AIModel(std::string filename);
 
-        T& getModel()
-        {
-            return model_;
-        }
+    void forward() const;
+
+    // Special member functions       
+    AIModel( AIModel const& other);
+    AIModel& operator=( AIModel other);
+
+    AIModel( AIModel&& other) = default;   
+    AIModel& operator=( AIModel&& other) = default;  
 };
+
+} // namespace AIxelerator
