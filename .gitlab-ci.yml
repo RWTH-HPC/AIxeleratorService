@@ -42,6 +42,17 @@ lint-test-job:   # This job also runs in the test stage.
     - echo "Linting code..."
     - echo "No lint issues found."
 
+batch-job:
+  stage: test
+  tags:
+    - "cluster"
+  variables:
+    CI_MODE: "Batch"
+    BATCH_SCRIPT: "batch.sh"
+  script:
+    - echo "Script will be ignored in CI_MODE==Batch"
+
+
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
   tags:
