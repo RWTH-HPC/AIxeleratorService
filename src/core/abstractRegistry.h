@@ -1,40 +1,39 @@
 #pragma once
 
 /*
- * 
+ *
  *  EXAMPLE #1 - AIModel
- *  
+ *
  *      // usage of the abstract factory
  *
  *  AIModel.h
  *      // define specific AIModelEntry and AIModelRegistry
  *      using AIModelEntry = abstractEntry<AIModelBase, std::string>;
  *      using AIModelRegistry = abstractRegistry<AIModelBase, AIModelEntry, std::string>;
- *  
+ *
  *  TorchModel.cpp
  *      // register a specific AIModel (here: TorchModel)
  *      AIModelEntry entryTorchModel(&abstractFactory<AIModelBase, TorchModel, std::string>);
  *      AIModelRegistry addTorchModel("TorchModel", entrytorchModel);
- *  
+ *
  *      //...NOTE: in this example 'entryTorchModel' and 'addTorchModel' are arbitrary names
- *  
+ *
  *  yourCode.cpp
  *      // construct model by name
  *      model_ = AIModelRegistry::constructByName("TorchModel", std::string);
  *
  */
 
-#include <unordered_map>
+#include <exception>
+#include <iostream>
 #include <memory>
 #include <string>
-#include <iostream>
 #include <typeinfo>
-#include <exception>
+#include <unordered_map>
 
-namespace AIxelerator
-{
+namespace AIxelerator {
 /*! \brief abstract factory function
- * 
+ *
  *  metafunction, designed after the abstract factory pattern: creates a
  *  specific instance, but returns it as base class
  *
@@ -44,11 +43,11 @@ namespace AIxelerator
  *  @param _special specialised derived class (e.g. TorchModel, which inherits from AIModelBase)
  *  @param _constructTypes argument types which are required by the _base class' constructor
  *
- *  returns shared pointer to base class instance
+ *  returns unique pointer to base class instance
  */
-template<class _base, class _special, typename... _constructTypes>
+template <class _base, class _special, typename... _constructTypes>
 std::unique_ptr<_base> abstractFactory(_constructTypes... constructArgs)
-{   
+{
     return std::make_unique<_special>(_special(constructArgs...));
 }
 
@@ -59,7 +58,7 @@ std::unique_ptr<_base> abstractFactory(_constructTypes... constructArgs)
  *  and constructing derived classes (potentially from dynamically linked
  *  libraries). Objects are runtime selectable by registering to a unique,
  *  central object (registry = singleton) and making them available by their name
- *  throughout the whole code. 
+ *  throughout the whole code.
  *
  *  We use a static map (registry) as trojan horse into our library. Other
  *  modules (e.g. a specific AIModel) can register itself to this registry and
@@ -70,7 +69,7 @@ std::unique_ptr<_base> abstractFactory(_constructTypes... constructArgs)
  *      https://stackoverflow.com/questions/1008019/c-singleton-design-pattern
  *
  *  Example: a model is dynamically linked to the code, after registration it
- *           is readily available by selecting it in a template by setting the 
+ *           is readily available by selecting it in a template by setting the
  *           modelType correspondingly
  *
  *
@@ -81,11 +80,9 @@ std::unique_ptr<_base> abstractFactory(_constructTypes... constructArgs)
  *  @param _constructTypes argument types which are required by the _base class' constructor
  *                        (which neccessarily also applies to all derived classes)
  */
-template<class _base, class _entry, typename... constructTypes>
-class abstractRegistry
-{
+template <class _base, class _entry, typename... constructTypes>
+class abstractRegistry {
 public:
-    
     // \typedef entryList
     //          manages entries, which contain at least an abstract factory
     //          function which creates a derived class, but returns its base
@@ -100,7 +97,7 @@ public:
     abstractRegistry(const std::string name, _entry e)
     {
         _entry temp_e(e);
-        objects().insert({name, temp_e});
+        objects().insert({ name, temp_e });
     }
     static entryList l_; // guaranteed to be destroyed, instantiated on first use
 
@@ -118,7 +115,9 @@ public:
      */
     static void printContents()
     {
-        std::cout << std::endl << " REGISTRY INFO: " << std::endl << std::endl;
+        std::cout << std::endl
+                  << " REGISTRY INFO: " << std::endl
+                  << std::endl;
         std::cout << "available options are:" << std::endl;
         std::cout << "(" << std::endl;
         for (auto& obj : objects())
@@ -133,7 +132,7 @@ public:
      *
      *  returns shared_ptr to _base class, but constructs derived class instance (abstract factory pattern)
      */
-    static std::unique_ptr<_base> constructByName(const std::string name, constructTypes... constructArgs) 
+    static std::unique_ptr<_base> constructByName(const std::string name, constructTypes... constructArgs)
     {
         auto obj = objects().find(name); // entry is a const_iterator
         if (obj != objects().end()) {
@@ -148,7 +147,7 @@ public:
 };
 
 /*! \brief abstract entry type
- * 
+ *
  *  Entry type, designed to be registered to a registry. Manages a factory
  *  function for instances of base class and all of its derived types.
  *
@@ -162,16 +161,21 @@ public:
  *  // define specific entry type
  *  using solverEntry = abstractEntry<solver, parser*, database*, solution*>;
  */
-template<class _base, typename... constructTypes>
-struct abstractEntry
-{
+template <class _base, typename... constructTypes>
+struct abstractEntry {
     // definition of the factory function type
     using factoryFunction = std::unique_ptr<_base> (*)(constructTypes...);
     // (public) class members
     factoryFunction factory_;
     // default constructors
-    abstractEntry(factoryFunction f) : factory_(f) { }
-    abstractEntry(const abstractEntry& e) : factory_(e.factory_) { }
+    abstractEntry(factoryFunction f)
+        : factory_(f)
+    {
+    }
+    abstractEntry(const abstractEntry& e)
+        : factory_(e.factory_)
+    {
+    }
 };
 
 } // namespace AIxelerator

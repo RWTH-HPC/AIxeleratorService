@@ -1,28 +1,35 @@
-add_executable(testAIModelTypeErasure
-    models/testAIModelTypeErasure.cpp              
-)       
+include(CTest)
 
-target_include_directories(testAIModelTypeErasure PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/models
-)  
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG release-1.12.1)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt
+    ON
+    CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 
-add_executable(testAIModelInheritence
-    models/testAIModelInheritence.cpp              
-)   
+enable_testing()
 
-target_include_directories(testAIModelInheritence PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/models
-)  
+list(APPEND AIXELERATOR_UNIT_TESTS "models/test_AIModel.cpp"
+     "core/test_data_distributor.cpp")
 
-add_executable(testAIModel
-    models/testAIModel.cpp              
-)   
+include(GoogleTest)
 
-target_include_directories(testAIModel PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/models
-)  
+foreach(TEST ${AIXELERATOR_UNIT_TESTS})
+  message(STATUS "Creating test ${TEST}")
+  get_filename_component(UNITTEST_NAME ${TEST} NAME)
+  get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
+  add_executable(${UNITTEST_NAME}.x ${TEST})
+  target_link_libraries(${UNITTEST_NAME}.x PRIVATE GTest::gtest_main
+                                                   AIxelerator)
+  gtest_discover_tests(
+    ${UNITTEST_NAME}.x
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/test/${UNITTEST_DIR})
+endforeach(TEST)
 
-target_link_libraries(testAIModel PRIVATE
-    AIxelerator
-)  
+# add_executable(test_AIModel.x models/testAIModel.cpp )
 
+# target_link_libraries( test_AIModel.x GTest::gtest_main AIxelerator )

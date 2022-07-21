@@ -1,45 +1,40 @@
 #pragma once
 
-#include <memory>
-#include <utility>
-#include <iostream>
 #include <filesystem> // C++17
-#include <map>
 #include <functional>
+#include <iostream>
+#include <map>
+#include <memory>
 #include <string>
+#include <utility>
 
-#include "abstractRegistry.h"
 #include "AIModelUtils.h"
+#include "abstractRegistry.h"
 
 namespace fs = std::filesystem;
 
-namespace AIxelerator
-{
+namespace AIxelerator {
 
-class AIModelBase
-{
-public:    
+class AIModelBase {
+public:
     AIModelBase() = default;
     virtual ~AIModelBase() = default;
 
     virtual void forward() = 0;
 };
 
- // define registry
- using AIModelEntry = abstractEntry<AIModelBase, std::string>;
- using AIModelRegistry = abstractRegistry<AIModelBase, AIModelEntry, std::string>;
+// define registry
+using AIModelEntry = abstractEntry<AIModelBase, std::string>;
+using AIModelRegistry = abstractRegistry<AIModelBase, AIModelEntry, std::string>;
 
- // convenience macro to register derived AIModels
- #define REGISTER_AIMODEL(DERIVED_CLASS, CLASS_NAME) \
- AIModelEntry entry##DERIVED_CLASS(&AIxelerator::abstractFactory<AIModelBase, DERIVED_CLASS, std::string>); \
- AIModelRegistry add##DERIVED_CLASS(CLASS_NAME, entry##DERIVED_CLASS);
+// convenience macro to register derived AIModels
+#define REGISTER_AIMODEL(DERIVED_CLASS, CLASS_NAME)                                                            \
+    AIModelEntry entry##DERIVED_CLASS(&AIxelerator::abstractFactory<AIModelBase, DERIVED_CLASS, std::string>); \
+    AIModelRegistry add##DERIVED_CLASS(CLASS_NAME, entry##DERIVED_CLASS);
 
-
-class AIModel
-{
+class AIModel {
 private:
-    
-    friend void forward( AIModel const& model)
+    friend void forward(AIModel const& model)
     {
         model.pimpl->forward();
     }
@@ -49,18 +44,18 @@ private:
 public:
     AIModel() = delete;
     ~AIModel() = default;
-    AIModel(AIFramework framework, std::string filename);   
-    AIModel(std::string framework_name, std::string filename);    
+    AIModel(AIFramework framework, std::string filename);
+    AIModel(std::string framework_name, std::string filename);
     AIModel(std::string filename);
 
     void forward() const;
 
-    // Special member functions       
-    AIModel( AIModel const& other);
-    AIModel& operator=( AIModel other);
+    // Special member functions
+    AIModel(AIModel const& other);
+    AIModel& operator=(AIModel other);
 
-    AIModel( AIModel&& other) = default;   
-    AIModel& operator=( AIModel&& other) = default;  
+    AIModel(AIModel&& other) = default;
+    AIModel& operator=(AIModel&& other) = default;
 };
 
 } // namespace AIxelerator
