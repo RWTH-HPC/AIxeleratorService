@@ -1,0 +1,8 @@
+﻿---
+BasedOnStyle: WebKit
+
+AllowShortLoopsOnASingleLine: 'false'
+FixNamespaceComments: 'true'
+NamespaceIndentation: None
+
+...
