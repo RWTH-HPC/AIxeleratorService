@@ -56,6 +56,12 @@ public:
 
     AIModel(AIModel&& other) = default;
     AIModel& operator=(AIModel&& other) = default;
+
+    template <typename T>
+    void register_inputs();
+
+    template <typename T>
+    void register_outputs();
 };
 
 } // namespace AIxelerator

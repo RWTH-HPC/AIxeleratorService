@@ -1,12 +1,8 @@
 # Add AIxelerator as an empty target
 add_library(AIxelerator)
-set_target_properties(
-  AIxelerator
-  PROPERTIES CXX_STANDARD 17
-             CXX_STANDARD_REQUIRED Yes
-             CXX_EXTENSIONS No
-             VERSION ${AIxelerator_VERSION}
-             SOVERSION ${AIxelerator_SOVERSION})
+# set_target_properties( AIxelerator PROPERTIES CXX_STANDARD 17
+# CXX_STANDARD_REQUIRED Yes CXX_EXTENSIONS No VERSION ${AIxelerator_VERSION}
+# SOVERSION ${AIxelerator_SOVERSION})
 
 # Add source files to target
 target_sources(

@@ -3,4 +3,6 @@
 
 TEST(DataDistributor, Constructor)
 {
+    AIxelerator::DataDistributor dd {};
+    int device_count = dd.device_count();
 }

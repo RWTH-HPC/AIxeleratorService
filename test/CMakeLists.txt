@@ -14,7 +14,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 list(APPEND AIXELERATOR_UNIT_TESTS "models/test_AIModel.cpp"
-     "core/test_data_distributor.cpp")
+     "core/test_data_distributor.cpp" "core/test_adapter.cpp")
 
 include(GoogleTest)
 

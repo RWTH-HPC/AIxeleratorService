@@ -2,9 +2,10 @@
 fail_fast: false
 repos:
   - repo: https://github.com/pocc/pre-commit-hooks
-    rev: master
+    rev: v1.3.5
     hooks:
       - id: clang-format
+        args: [-i]
       # - id: clang-tidy
       # - id: oclint
       # - id: uncrustify
