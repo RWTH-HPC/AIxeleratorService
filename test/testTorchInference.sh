@@ -4,7 +4,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=3G
 #SBATCH --job-name=CI-testTorchInference
-#SBATCH --output=CI-testTorchInference.%J.out
+####SBATCH --output=CI-testTorchInference.%J.out # do not set for CI
 #SBATCH --account=rwth0792
 #SBATCH --time=00:10:00
 #SBATCH --partition=c18g
