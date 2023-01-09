@@ -26,37 +26,19 @@ build-job:       # This job runs in the build stage, which runs first.
     - echo "Compiling the code..."
     - echo "Compile complete."
 
-unit-test-job:   # This job runs in the test stage.
+torch-inference-test-job:   # This job runs in the test stage.
   stage: test    # It only starts when the job in the build stage completes successfully.
-  tags:
-    - "cluster"
-  script:
-    - echo "Running unit tests..."
-    - echo "Code coverage is 90%"
-
-lint-test-job:   # This job also runs in the test stage.
-  stage: test    # It can run at the same time as unit-test-job (in parallel).
-  tags:
-    - "cluster"
-  script:
-    - echo "Linting code..."
-    - echo "No lint issues found."
-
-batch-job:
-  stage: test
   tags:
     - "cluster"
   variables:
     CI_MODE: "Batch"
-    BATCH_SCRIPT: "batch.sh"
+    BATCH_SCRIPT: "test/testTorchInference.sh"
   script:
     - echo "Script will be ignored in CI_MODE==Batch"
-
 
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
   tags:
     - "cluster"
   script:
-    - echo "Deploying application..."
     - echo "Application successfully deployed."

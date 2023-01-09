@@ -1,5 +1,0 @@
-# Add binary files to git-lfs 
-
-# Model files ML frameworks 
-*.pt filter=lfs diff=lfs merge=lfs -text
-
