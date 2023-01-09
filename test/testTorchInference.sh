@@ -16,6 +16,10 @@ module load cuda/11.4
 module load cudnn/8.3.2
 module load cmake/3.21.1
 
+pwd
+
+cd /home/rwth0792/aixeleratorservice
+
 rm -rf BUILD-CI
 mkdir BUILD-CI && cd BUILD-CI
 
