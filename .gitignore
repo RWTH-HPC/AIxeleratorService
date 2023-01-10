@@ -40,3 +40,6 @@
 build
 install
 
+# custom
+BUILD*
+
