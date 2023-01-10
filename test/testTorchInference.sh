@@ -16,6 +16,11 @@ module load cuda/11.4
 module load cudnn/8.3.2
 module load cmake/3.21.1
 
+echo ${HOST}
+echo ${HOSTNAME}
+
+echo ${LD_LIBRARY_PATH}
+
 pwd
 
 cd /home/rwth0792/aixeleratorservice
