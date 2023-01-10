@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <memory>
-#include <iostream>
 
 #include <ATen/ATen.h>
 
@@ -47,7 +46,6 @@ void TorchInference::init(
 
 void TorchInference::inference()
 {
-    
     int batch_dim = input_.size(0);
     int num_batches = batch_dim / batchsize_;
     int size_remaining = batch_dim % batchsize_;
