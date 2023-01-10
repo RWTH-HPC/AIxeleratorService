@@ -28,6 +28,6 @@ cd /home/rwth0792/aixeleratorservice
 rm -rf BUILD-CI
 mkdir BUILD-CI && cd BUILD-CI
 
-Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake .. && \
+Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 .. && \
 cmake --build . && \
 ./test/testTorchInference.cpp.x
