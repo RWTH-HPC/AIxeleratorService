@@ -3,11 +3,12 @@
 
 void TensorflowInference::init()
 {
-
+    //session_ = TF_LoadSessionFromSavedModel()
 }
 
 void TensorflowInference::inference()
 {
+    /*
     int input_dims = TF_NumDims(input_);
     if ( input_dims < 2 )
     {
@@ -30,5 +31,8 @@ void TensorflowInference::inference()
     {
         // TODO: generalize for more than 2-dimensional tensors
         std::memcpy(input_batch_data, &(input_data)[i*batchsize_*second_dim], sizeof(double) * batch_dim * second_dim);
+
+        TF_SessionRun(session_, )
     }
+    */
 }

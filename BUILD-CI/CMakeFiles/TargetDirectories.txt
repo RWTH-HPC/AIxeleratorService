@@ -1,0 +1,6 @@
+/home/rwth0792/aixeleratorservice/BUILD-CI/CMakeFiles/rebuild_cache.dir
+/home/rwth0792/aixeleratorservice/BUILD-CI/CMakeFiles/edit_cache.dir
+/home/rwth0792/aixeleratorservice/BUILD-CI/test/CMakeFiles/rebuild_cache.dir
+/home/rwth0792/aixeleratorservice/BUILD-CI/test/CMakeFiles/testTensorflowInference.cpp.x.dir
+/home/rwth0792/aixeleratorservice/BUILD-CI/test/CMakeFiles/edit_cache.dir
+/home/rwth0792/aixeleratorservice/BUILD-CI/test/CMakeFiles/testTorchInference.cpp.x.dir
