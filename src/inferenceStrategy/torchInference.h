@@ -14,7 +14,8 @@ class TorchInference : public InferenceStrategy
             int batchsize, 
             int device_id, 
             std::string model_file_name, 
-            const std::vector<int64_t>& input_shape, double* inputData, const std::vector<int64_t>& output_shape, double* outputData
+            const std::vector<int64_t>& input_shape, double* inputData, 
+            const std::vector<int64_t>& output_shape, double* outputData
         );
         void inference() override;
 

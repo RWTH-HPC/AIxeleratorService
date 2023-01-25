@@ -26,3 +26,18 @@ foreach(TEST ${TENSORFLOW_TESTS})
     target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
 endforeach(TEST)
 
+
+list(APPEND TENSORFLOW_REPRODUCER "tensorflowReproducer.cpp")
+
+foreach(TEST ${TENSORFLOW_REPRODUCER})
+    message(STATUS "Creating Tensorflow test ${TEST}")
+    message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
+    get_filename_component(UNITTEST_NAME ${TEST} NAME)
+    get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
+    add_executable(${UNITTEST_NAME}.x ${TEST})
+    target_sources(${UNITTEST_NAME}.x PRIVATE tensorflowReproducer.cpp)
+    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+    target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
+endforeach(TEST)
+

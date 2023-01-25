@@ -32,8 +32,6 @@ torch-inference-test-job:   # This job runs in the test stage.
   variables:
     CI_MODE: "Sbatch"
     BATCH_SCRIPT: "test/testTorchInference.sh"
-  script:
-    - echo "Script will be ignored in CI_MODE==Batch"
 
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
