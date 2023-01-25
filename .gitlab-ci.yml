@@ -35,6 +35,14 @@ torch-inference-test-job:   # This job runs in the test stage.
   script:
    - echo "Script is not executed for Sbatch jobs?"
 
+tensorflow-inference-test-job:   # This job runs in the test stage.
+  stage: test    # It only starts when the job in the build stage completes successfully.
+  variables:
+    CI_MODE: "Sbatch"
+    BATCH_SCRIPT: "test/testTensorflowInference.sh"
+  script:
+   - echo "Script is not executed for Sbatch jobs?"
+
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
   script:
