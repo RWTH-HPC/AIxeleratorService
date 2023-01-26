@@ -14,6 +14,13 @@ set(CMAKE_BUILD_TYPE Debug)
 option(BUILD_TESTS "Build tests" ON)
 
 find_package(Torch REQUIRED)
+find_package(MPI REQUIRED)
+
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+    message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
 
 # simulate a findTensorflow.cmake
 # Tensorflow_DIR needs to be passed to CMAKE configure

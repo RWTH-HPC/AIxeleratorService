@@ -41,3 +41,16 @@ foreach(TEST ${TENSORFLOW_REPRODUCER})
     target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
 endforeach(TEST)
 
+
+list(APPEND DISTRIBUTION_TESTS "testRoundRobinDistribution.cpp")
+foreach(TEST ${DISTRIBUTION_TESTS})
+    message(STATUS "Creating Distribution test ${TEST}")
+    get_filename_component(UNITTEST_NAME ${TEST} NAME)
+    get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
+    add_executable(${UNITTEST_NAME}.x ${TEST})
+    target_sources(${UNITTEST_NAME}.x PRIVATE testRoundRobinDistribution.cpp ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp)
+    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
+    target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${MPI_LIBRARIES})
+endforeach(TEST)
+
