@@ -43,6 +43,14 @@ tensorflow-inference-test-job:   # This job runs in the test stage.
   script:
    - echo "Script is not executed for Sbatch jobs?"
 
+round-robin-distribution-test-job:
+  stage: test
+  variables:
+    CI_MODE: "Sbatch"
+    BATCH_SCRIPT: "test/testRoundRobinDistribution.sh"
+  script:
+    - echo "Script is not executed for Sbatch jobs?"
+
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
   script:

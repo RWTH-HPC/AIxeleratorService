@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
     RoundRobinDistribution distributor(input.size(), input.data(), output.size(), output.data());
 
-    std::cout << "Worker " << my_rank << "sends input: ";
+    std::cout << "Worker " << my_rank << " sends input: ";
     for (int j = 0; j < input.size(); j++)
     {
         std::cout << input[j] << ",";
@@ -71,10 +71,10 @@ int main(int argc, char *argv[])
     distributor.scatterOutputData();
 
     
-    std::cout << "Worker " << my_rank << "sends input: ";
-    for (int j = 0; j < input.size(); j++)
+    std::cout << "Worker " << my_rank << " recieved output: ";
+    for (int j = 0; j < output.size(); j++)
     {
-        std::cout << input[j] << ",";
+        std::cout << output[j] << ",";
     }
     std::cout << std::endl;    
 

@@ -33,8 +33,8 @@ RoundRobinDistribution::RoundRobinDistribution(int input_sendcount, double* inpu
         output_displs_.resize(0);
     }
     
-    MPI_Gather(&input_sendcount_, 1, MPI_INT, input_recvcounts_.data(), workgroup_size_, MPI_INT, 0, work_group_comm_);
-    MPI_Gather(&output_sendcount_, 1, MPI_INT, output_recvcounts_.data(), workgroup_size_, MPI_INT, 0, work_group_comm_);
+    MPI_Gather(&input_sendcount_, 1, MPI_INT, input_recvcounts_.data(), 1, MPI_INT, 0, work_group_comm_);
+    MPI_Gather(&output_sendcount_, 1, MPI_INT, output_recvcounts_.data(), 1, MPI_INT, 0, work_group_comm_);
     
     if(isGPUController())
     {
@@ -61,6 +61,7 @@ RoundRobinDistribution::RoundRobinDistribution(int input_sendcount, double* inpu
 void RoundRobinDistribution::createWorkgroups()
 {
     int my_rank, num_procs;
+    int err;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
@@ -72,17 +73,17 @@ void RoundRobinDistribution::createWorkgroups()
     MPI_Comm_size(node_communicator, &node_size);
     MPI_Comm_free(&node_communicator);
 
-    std::cout << "Rank " << my_rank << "/" << num_procs << "on its local machine is " << node_rank << "/" << node_size << std::endl; 
+    std::cout << "Rank " << my_rank << "/" << num_procs << " on its local machine is " << node_rank << "/" << node_size << std::endl; 
 
     int num_devices = aixelerator_service::utils::deviceCount();
 
-    std::cout << "Rank " << my_rank << "/" << num_procs << "on its local machine is " << node_rank << "/" << node_size << "and has access to " << num_devices << " devices!" << std::endl; 
+    std::cout << "Rank " << my_rank << "/" << num_procs << " on its local machine is " << node_rank << "/" << node_size << " and has access to " << num_devices << " devices!" << std::endl; 
 
-    bool is_gpu_controller_ = node_rank < num_devices;
+    is_gpu_controller_ = node_rank < num_devices;
 
     if (is_gpu_controller_)
     {
-         std::cout << "Rank " << my_rank << "/" << num_procs << "on its local machine is " << node_rank << "/" << node_size << "is the GPU controller!" << std::endl; 
+         std::cout << "Rank " << my_rank << "/" << num_procs << " on its local machine is " << node_rank << "/" << node_size << " is the GPU controller!" << std::endl; 
          my_gpu_device_ = node_rank;
     }
 
@@ -90,7 +91,7 @@ void RoundRobinDistribution::createWorkgroups()
     int total_gpu_count = 0;
     int my_num_devices = is_gpu_controller_ ? 1 : 0;
     MPI_Allreduce(&my_num_devices, &total_gpu_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    std::cout << "Rank " << my_rank << "/" << num_procs << "knows that there is a total of " << total_gpu_count << " GPUs across all systems" << std::endl;
+    std::cout << "Rank " << my_rank << "/" << num_procs << " knows that there is a total of " << total_gpu_count << " GPUs across all systems" << std::endl;
 
     // combine controllers (and workers) into separate communicators, to enumerate them
     MPI_Comm work_type_comm;
@@ -103,15 +104,20 @@ void RoundRobinDistribution::createWorkgroups()
     // round robin assignment of data to a gpu, making sure the gpu master is rank 0
     int color = work_type_rank % total_gpu_count;
     int order = is_gpu_controller_ ? 0 : my_rank + total_gpu_count;
-    std::cout << "Rank " << my_rank << "/" << num_procs << "will be in group " << color << " order " << order << std::endl;
+    std::cout << "Rank " << my_rank << "/" << num_procs << " will be in group " << color << " order " << order << std::endl;
 
     // initialize the work group communicator
-    MPI_Comm_split(MPI_COMM_WORLD, color, order, &work_group_comm_);
+    err = MPI_Comm_split(MPI_COMM_WORLD, color, order, &work_group_comm_);
+    if ( err != MPI_SUCCESS )
+    {
+        std::cout << "Rank " << my_rank << ": Error when splitting workgroup communicator " << work_group_comm_  << std::endl;
+    }
+    std::cout << "Rank " << my_rank << ": workgroup communicator = " << work_group_comm_  << std::endl;
     int work_group_rank, work_group_size;
     MPI_Comm_rank(work_group_comm_, &work_group_rank);
     MPI_Comm_size(work_group_comm_, &work_group_size);
     workgroup_size_ = work_group_size;
-    std::cout << "Rank " << my_rank << "/" << num_procs << "got id of " << work_group_rank << "/" << work_group_size << std::endl;
+    std::cout << "Rank " << my_rank << "/" << num_procs << " got id of " << work_group_rank << "/" << work_group_size << std::endl;
 }
 
 void RoundRobinDistribution::setInputSizes(int sendcount, std::vector<int> recvcounts, std::vector<int> displs)
