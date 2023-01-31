@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <iostream>
 
 #include <ATen/ATen.h>
 
@@ -9,9 +10,10 @@ void TorchInference::init(
     int batchsize, 
     int device_id, 
     std::string model_file_name, 
-    const std::vector<int64_t>& input_shape, double* inputData, const std::vector<int64_t>& output_shape, double* outputData
+    std::vector<int64_t>& input_shape, double* inputData,  std::vector<int64_t>& output_shape, double* outputData
 ){
     device_id_ = device_id;
+    std::cout << "torchinference init device id = " << device_id_ << std::endl;
     
     model_file_name_ = model_file_name;
     try{
@@ -37,10 +39,13 @@ void TorchInference::init(
     const torch::TensorOptions options(torch::kFloat64);
     
     at::IntArrayRef input_sizes = input_shape;
+    std::cout << "torchInference inputData ptr = " << inputData << std::endl;
     input_ = torch::from_blob((void*) inputData, input_sizes, options);
+    std::cout << "TorchInference init input tensor = " << input_ << std::endl;
 
     at::IntArrayRef output_sizes = output_shape;
     output_ = torch::from_blob((void*) outputData, output_sizes, options);
+    std::cout << "TorchInference init output tensor = " << output_ << std::endl;
 
 }
 
@@ -57,6 +62,8 @@ void TorchInference::inference()
     for( int i = 0; i < num_batches; i++)
     {
         input_batch_ = input_.slice(0, batchsize_*i, batchsize_*(i+1));
+        std::cout << "TorchInference input Tensor = " << input_batch_ << std::endl;
+        std::cout << "TorchInference got device_id = " << device_id_ << std::endl;
         input_gpu_ = input_batch_.to(torch::Device(torch::kCUDA, device_id_));
         std::vector<torch::jit::IValue> inputs = {input_gpu_};
         output_gpu_ = torch_model_.forward(inputs).toTensor();

@@ -6,12 +6,12 @@ int main(int argc, char *argv[])
 {
     std::cout << "Test for torchInference starting" << std::endl; 
 
-    const std::vector<int64_t> input_shape = {1, 2};
+    std::vector<int64_t> input_shape = {1, 2};
     //double input_data[] = { 1.0, 1.0 };
     //std::shared_ptr<double[]> p_input(input_data);
     double* input_data = new double[2] { 1.0, 1.0 };
 
-    const std::vector<int64_t> output_shape = {1, 2};
+    std::vector<int64_t> output_shape = {1, 2};
     //double output_data[] = { 0.0, 0.0 };
     //std::shared_ptr<double[]> p_output(output_data);
     double* output_data = new double[2] { 0.0, 0.0 };

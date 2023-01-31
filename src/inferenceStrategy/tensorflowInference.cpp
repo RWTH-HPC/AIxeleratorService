@@ -44,8 +44,8 @@ void TensorflowInference::initSession()
 }
 
 void TensorflowInference::initTensors(
-    const std::vector<int64_t>& input_shape, double* input_data, 
-    const std::vector<int64_t>& output_shape, double* output_data
+    std::vector<int64_t>& input_shape, double* input_data, 
+    std::vector<int64_t>& output_shape, double* output_data
 ){
     int batch_dim = input_shape[0];
     // TODO: generalize for tensors with dim > 2
@@ -154,8 +154,8 @@ void TensorflowInference::init(
     int batchsize, 
     int device_id, 
     std::string model_file_name, 
-    const std::vector<int64_t>& input_shape, double* input_data, 
-    const std::vector<int64_t>& output_shape, double* output_data
+    std::vector<int64_t>& input_shape, double* input_data, 
+    std::vector<int64_t>& output_shape, double* output_data
 ){
     batchsize_ = batchsize;
     device_id_ = device_id;

@@ -18,9 +18,9 @@ class TensorflowInference : public InferenceStrategy
             int batchsize, 
             int device_id, 
             std::string model_file_name, 
-            const std::vector<int64_t>& input_shape, double* input_data, 
-            const std::vector<int64_t>& output_shape, double* output_data
-        );
+            std::vector<int64_t>& input_shape, double* input_data, 
+            std::vector<int64_t>& output_shape, double* output_data
+        ) override;
         void inference() override;
 
     private:
@@ -56,8 +56,8 @@ class TensorflowInference : public InferenceStrategy
 
         void initSession();
         void initTensors(
-            const std::vector<int64_t>& input_shape, double* input_data, 
-            const std::vector<int64_t>& output_shape, double* output_data
+            std::vector<int64_t>& input_shape, double* input_data, 
+            std::vector<int64_t>& output_shape, double* output_data
         );
 };
 

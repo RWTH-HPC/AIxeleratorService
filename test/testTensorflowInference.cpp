@@ -13,10 +13,10 @@ int main(int argc, char *argv[])
     double* output_data = new double[2] { -13.37, -13.37 };
     */
 
-    const std::vector<int64_t> input_shape = {4, 2};
+    std::vector<int64_t> input_shape = {4, 2};
     double* input_data = new double[8] { 0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0 };
 
-    const std::vector<int64_t> output_shape = {4, 2};
+    std::vector<int64_t> output_shape = {4, 2};
     double* output_data = new double[8] { -13.37, -13.37, -13.37, -13.37, -13.37, -13.37, -13.37, -13.37 };
     
 

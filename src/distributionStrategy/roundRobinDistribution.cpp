@@ -5,16 +5,26 @@
 #include <iostream>
 #include <numeric>
 
-RoundRobinDistribution::RoundRobinDistribution(int input_sendcount, double* input_data, int output_sendcount, double* output_data)
+
+RoundRobinDistribution::RoundRobinDistribution(std::vector<int64_t> input_shape, double* input_data, std::vector<int64_t> output_shape, double* output_data)
 {
     work_group_comm_ = MPI_COMM_WORLD;
     createWorkgroups();
 
-    input_sendcount_ = input_sendcount;
-    input_data_worker_ = input_data;
+    int input_sendcount = std::accumulate(input_shape.begin(), input_shape.end(), 1, std::multiplies<int>());
+    int output_sendcount = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
 
-    output_sendcount_ = output_sendcount;
-    output_data_worker_ = output_data;
+    setInputData(input_sendcount, input_data);
+    setOutputData(output_sendcount, output_data);
+
+    // determine number of samples over all processes
+    int batch_dim = input_shape[0];
+    int total_batch_dim = 0;
+    MPI_Reduce(&batch_dim, &total_batch_dim, 1, MPI_INT, MPI_SUM, 0, work_group_comm_);
+    input_shape_controller_ = input_shape;
+    input_shape_controller_[0] = total_batch_dim;
+    output_shape_controller_ = output_shape;
+    output_shape_controller_[0] = total_batch_dim;
 
     if(isGPUController())
     {
@@ -50,12 +60,32 @@ RoundRobinDistribution::RoundRobinDistribution(int input_sendcount, double* inpu
         total_output_count_ = std::accumulate(output_recvcounts_.begin(), output_recvcounts_.end(), 0);
 
         input_data_controller_ = new double[total_input_count_];
+        /*
+        for(int i = 0; i < total_input_count_; i++)
+        {
+            input_data_controller_[i] = 0.0;
+        }
+        */
+
         output_data_controller_ = new double[total_output_count_];
+        /*
+        for(int i = 0; i < total_output_count_; i++)
+        {
+            output_data_controller_[i] = 0.0;
+        }
+        */
     }
 
 
     //setInputSizes(input_sendcount, input_recvcounts, input_displs);
     //setOutputSizes(output_sendcount, output_recvcounts, output_displs);
+}
+
+RoundRobinDistribution::~RoundRobinDistribution()
+{
+    std::cout << "RoundRobinDistribution DTOR called" << std::endl;
+    delete[] input_data_controller_;
+    delete[] output_data_controller_;
 }
 
 void RoundRobinDistribution::createWorkgroups()
@@ -64,6 +94,7 @@ void RoundRobinDistribution::createWorkgroups()
     int err;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+    my_rank_ = my_rank;
 
     // figure out our local node rank
     MPI_Comm node_communicator;
@@ -118,6 +149,18 @@ void RoundRobinDistribution::createWorkgroups()
     MPI_Comm_size(work_group_comm_, &work_group_size);
     workgroup_size_ = work_group_size;
     std::cout << "Rank " << my_rank << "/" << num_procs << " got id of " << work_group_rank << "/" << work_group_size << std::endl;
+}
+
+void RoundRobinDistribution::setInputData(int input_sendcount, double* input_data)
+{
+    input_sendcount_ = input_sendcount;
+    input_data_worker_ = input_data;
+}
+
+void RoundRobinDistribution::setOutputData(int output_sendcount, double* output_data)
+{
+    output_sendcount_ = output_sendcount;
+    output_data_worker_ = output_data;
 }
 
 void RoundRobinDistribution::setInputSizes(int sendcount, std::vector<int> recvcounts, std::vector<int> displs)

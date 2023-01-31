@@ -15,10 +15,12 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
+    std::vector<int64_t> input_shape = { 1, 2 };
     std::vector<double> input = { (double)my_rank, (double)my_rank };
+    std::vector<int64_t> output_shape = { 1, 2 };
     std::vector<double> output = { -13.37, -13.37 };
 
-    RoundRobinDistribution distributor(input.size(), input.data(), output.size(), output.data());
+    RoundRobinDistribution distributor(input_shape, input.data(), output_shape, output.data());
 
     std::cout << "Worker " << my_rank << " sends input: ";
     for (int j = 0; j < input.size(); j++)

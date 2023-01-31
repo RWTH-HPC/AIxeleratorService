@@ -51,6 +51,14 @@ round-robin-distribution-test-job:
   script:
     - echo "Script is not executed for Sbatch jobs?"
 
+aixelerator-service-test-job:
+  stage: test
+  variables:
+    CI_MODE: "Sbatch"
+    BATCH_SCRIPT: "test/testAIxeleratorService.sh"
+  script:
+    - echo "Script is not executed for Sbatch jobs?"
+
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
   script:
