@@ -33,7 +33,6 @@ int main(int argc, char *argv[])
 
     std::cout << "MPI Rank " << my_rank << ": recieved output from AIxeleratorService = (" << output[0] << ", " << output[1] << ")" << std::endl;
 
-
     MPI_Finalize();
     return 0;
 }
