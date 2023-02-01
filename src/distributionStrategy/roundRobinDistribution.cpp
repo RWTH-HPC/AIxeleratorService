@@ -83,7 +83,6 @@ RoundRobinDistribution::RoundRobinDistribution(std::vector<int64_t> input_shape,
 
 RoundRobinDistribution::~RoundRobinDistribution()
 {
-    std::cout << "RoundRobinDistribution DTOR called" << std::endl;
     delete[] input_data_controller_;
     delete[] output_data_controller_;
 }
@@ -143,7 +142,6 @@ void RoundRobinDistribution::createWorkgroups()
     {
         std::cout << "Rank " << my_rank << ": Error when splitting workgroup communicator " << work_group_comm_  << std::endl;
     }
-    std::cout << "Rank " << my_rank << ": workgroup communicator = " << work_group_comm_  << std::endl;
     int work_group_rank, work_group_size;
     MPI_Comm_rank(work_group_comm_, &work_group_rank);
     MPI_Comm_size(work_group_comm_, &work_group_size);

@@ -23,16 +23,15 @@ int main(int argc, char *argv[])
     std::string model_file = "../models/torchModels/flexMLP-2x100x100x2.pt";
     aixelerator.registerModel(model_file);
 
+    std::cout << "MPI Rank " << my_rank << ": registering input tensor for AIxeleratorService = (" << input[0] << ", " << input[1] << ")" << std::endl;
     aixelerator.registerTensors(input_shape, input.data(), output_shape, output.data());
+
+    std::cout << "MPI Rank " << my_rank << ": calling inference!" << std::endl;
 
     aixelerator.setBatchsize(batchsize);
     aixelerator.inference();
 
-    std::cout << "MPI Rank " << my_rank << ": got output = (" << output[0] << ", " << output[1] << ")" << std::endl;
-
-
-
-
+    std::cout << "MPI Rank " << my_rank << ": recieved output from AIxeleratorService = (" << output[0] << ", " << output[1] << ")" << std::endl;
 
 
     MPI_Finalize();

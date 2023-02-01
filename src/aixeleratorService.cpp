@@ -42,9 +42,6 @@ void AIxeleratorService::registerTensors(
     input_data_ = input_data;
     output_data_ = output_data;
 
-    std::cout << "AIxerleratorService rank " << my_rank_ << ": input = " << input_data_ << std::endl;
-    std::cout << "AIxerleratorService rank " << my_rank_ << ": output = " << output_data_ << std::endl;
-
     distributor_ = std::make_unique<RoundRobinDistribution>(input_shape_, input_data, output_shape_, output_data);
 
     if (distributor_->isGPUController())
@@ -55,9 +52,6 @@ void AIxeleratorService::registerTensors(
 
         std::vector<int64_t> input_shape_controller = distributor_->getInputShapeController();
         std::vector<int64_t> output_shape_controller = distributor_->getOutputShapeController();
-
-        std::cout << "AIxeleratorService got input_shape_controller = " << input_shape_controller << std::endl;
-        std::cout << "AIxeleratorService got output_shape_controller = " << output_shape_controller << std::endl;
 
         inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_controller, input_data_controller, output_shape_controller, output_data_controller);
     }
