@@ -63,7 +63,7 @@ shared-torch-inference-test-job:
   variables:
     GIT_STRATEGY: none
 
-.shared-tensorflow-inference-test-job:
+shared-tensorflow-inference-test-job:
   stage: test
   extends: .shared-sequential-job
   script:
@@ -75,7 +75,7 @@ shared-torch-inference-test-job:
     - echo ${FLAGS_MPI_BATCH}
     - ./test/testTensorflowInference.cpp.x
 
-.shared-round-robin-distribution-test-job:
+shared-round-robin-distribution-test-job:
   stage: test
   extends: .shared-sequential-job
   script:
@@ -87,7 +87,7 @@ shared-torch-inference-test-job:
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
 
-.shared-aixelerator-service-test-job:
+shared-aixelerator-service-test-job:
   stage: test
   extends: .shared-sequential-job
   script:
@@ -99,7 +99,7 @@ shared-torch-inference-test-job:
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
 
-.shared-aixelerator-service-TF-test-job:
+shared-aixelerator-service-TF-test-job:
   stage: test
   extends: .shared-sequential-job
   script:
