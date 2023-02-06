@@ -51,8 +51,6 @@ shared-build-job:
     - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ..
     - cmake --build . -j 8
     - echo ${PWD}
-  variables:
-    SLURM_PARAM_CPUS: "-c 1"
 
 shared-torch-inference-test-job:
   stage: test
