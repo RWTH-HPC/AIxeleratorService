@@ -61,9 +61,9 @@ shared-torch-inference-test-job:
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
     - echo ${TMP}
-    - cd ./BUILD-CI2/test
+    - cd ./BUILD-CI2/
     - echo ${FLAGS_MPI_BATCH}
-    - ./testTorchInference.cpp.x
+    - ./test/testTorchInference.cpp.x
   variables:
     GIT_STRATEGY: none
 
