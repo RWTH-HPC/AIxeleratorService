@@ -15,15 +15,18 @@ AIxeleratorService::AIxeleratorService()
 
 void AIxeleratorService::registerModel(std::string model_file)
 {
+    // TODO: only GPU-controller ranks should create unique pointers with inference strategy. This requires to initalize distribution in constructor
     model_file_name_ = model_file;
 
     if ( model_file_name_.ends_with(std::string_view(".pt")) )
     {
         inferencing_ = std::make_unique<TorchInference>();
+        framework_ = AIX_TORCH;
     }
     else if ( model_file_name_.ends_with(std::string_view(".pb")) || model_file_name_.ends_with(std::string_view(".tf")) )
     {
         inferencing_ = std::make_unique<TensorflowInference>();
+        framework_ = AIX_TENSORFLOW;
     }
     else
     {
@@ -35,7 +38,6 @@ void AIxeleratorService::registerTensors(
     std::vector<int64_t> input_shape, double* input_data,
     std::vector<int64_t> output_shape, double* output_data
 ){
-    // TODO: extend inferenceStrategy and torchInference, tensorflowInference
     input_shape_ = input_shape;
     output_shape_ = output_shape;
 

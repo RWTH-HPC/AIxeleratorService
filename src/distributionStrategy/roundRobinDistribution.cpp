@@ -177,7 +177,7 @@ void RoundRobinDistribution::setOutputSizes(int sendcount, std::vector<int> recv
 
 void RoundRobinDistribution::gatherInputData()
 {
-    MPI_Gatherv(input_data_worker_, input_sendcount_, MPI_DOUBLE, input_data_controller_, input_recvcounts_.data(), input_displs_.data(), MPI_DOUBLE, 0, work_group_comm_);
+    MPI_Gatherv(input_data_worker_, input_sendcount_, MPI_DOUBLE, input_data_controller_, input_recvcounts_.data(), input_displs_.data(), MPI_DOUBLE, 0, work_group_comm_);  
 }
 
 void RoundRobinDistribution::scatterOutputData()

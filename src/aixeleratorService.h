@@ -6,6 +6,12 @@
 
 #include <memory>
 
+typedef enum AIFramework
+{
+    AIX_TORCH = 1,
+    AIX_TENSORFLOW = 2,
+} AIFramework;
+
 class AIxeleratorService
 {
     public:
@@ -28,6 +34,7 @@ class AIxeleratorService
         int batchsize_;
 
         int my_rank_;
+        AIFramework framework_;
 
         // make unique ptrs
         std::unique_ptr<InferenceStrategy> inferencing_;
