@@ -2,7 +2,8 @@
  
 #SBATCH --ntasks=4
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=3900M
+####SBATCH --mem-per-cpu=3900M
+#SBATCH --mem=100G
 #SBATCH --job-name=CI-testAIxeleratorService
 ####SBATCH --output=CI-testAIxeleratorService.%J.out # do not set for CI
 #SBATCH --account=rwth0792
