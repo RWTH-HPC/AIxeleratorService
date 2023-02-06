@@ -32,6 +32,11 @@ variables:
     SLURM_PARAM_EXCLUSIVE: "--exclusive"
     SLURM_PARAM_TIME: "--time=00:15:00"
     CI_MODE: "SingleSlurmJobAcrossStages"
+  before_script:
+    - module load gcc/10.3
+    - module load cuda/11.4
+    - module load cudnn/8.3.2
+    - module load cmake/3.21.1
 
 shared-build-job:
   stage: build
@@ -42,10 +47,6 @@ shared-build-job:
     - echo ${PWD}
     - echo ${TMP}
     - echo ${CI_PROJECT_DIR}
-    - module load gcc/10.3
-    - module load cuda/11.4
-    - module load cudnn/8.3.2
-    - module load cmake/3.21.1
     - cd ${TMP}
     - echo ${PWD}
     - mkdir BUILD-CI2
