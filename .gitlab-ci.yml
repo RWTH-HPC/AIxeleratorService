@@ -44,11 +44,8 @@ shared-build-job:
   script:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Building on $(hostname) into $TMP"
-    - echo ${PWD}
-    - echo ${TMP}
-    - echo ${CI_PROJECT_DIR}
-    - mkdir BUILD-CI2
-    - cd BUILD-CI2
+    - mkdir BUILD
+    - cd BUILD
     - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ..
     - cmake --build . -j 8
     - echo ${PWD}
@@ -61,10 +58,7 @@ shared-torch-inference-test-job:
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
     - echo ${TMP}
-    - cd ./BUILD-CI2/
-    - ls ..
-    - ls ../models
-    - ls ../models/torchModels
+    - cd ./BUILD
     - ./test/testTorchInference.cpp.x
   variables:
     GIT_STRATEGY: none
@@ -77,9 +71,9 @@ shared-torch-inference-test-job:
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
     - echo ${TMP}
-    - cd ./BUILD-CI2/test
+    - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
-    - ./testTensorflowInference.cpp.x
+    - ./test/testTensorflowInference.cpp.x
 
 .shared-round-robin-distribution-test-job:
   stage: test
@@ -89,9 +83,9 @@ shared-torch-inference-test-job:
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
     - echo ${TMP}
-    - cd ./BUILD-CI2/test
+    - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
-    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./testRoundRobinDistribution.cpp.x
+    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
 
 .shared-aixelerator-service-test-job:
   stage: test
@@ -101,9 +95,9 @@ shared-torch-inference-test-job:
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
     - echo ${TMP}
-    - cd ./BUILD-CI2/test
+    - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
-    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./testAIxeleratorService.cpp.x
+    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
 
 .shared-aixelerator-service-TF-test-job:
   stage: test
@@ -113,6 +107,6 @@ shared-torch-inference-test-job:
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
     - echo ${TMP}
-    - cd ./BUILD-CI2/test
+    - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
-    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./testAIxeleratorServiceTF.cpp.x
+    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorServiceTF.cpp.x
