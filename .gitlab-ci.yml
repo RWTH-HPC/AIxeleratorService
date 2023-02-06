@@ -40,6 +40,7 @@ shared-build-job:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Building on $(hostname) into $TMP"
     - echo ${PWD}
+    - echo ${TMP}
     - module load gcc/10.3
     - module load cuda/11.4
     - module load cudnn/8.3.2
@@ -56,6 +57,7 @@ shared-torch-inference-test-job:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
+    - echo ${TMP}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - ./testTorchInference.cpp.x
@@ -67,6 +69,7 @@ shared-tensorflow-inference-test-job:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
+    - echo ${TMP}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - ./testTensorflowInference.cpp.x
@@ -78,6 +81,7 @@ shared-round-robin-distribution-test-job:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
+    - echo ${TMP}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./testRoundRobinDistribution.cpp.x
@@ -89,6 +93,7 @@ shared-aixelerator-service-test-job:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
+    - echo ${TMP}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./testAIxeleratorService.cpp.x
@@ -100,6 +105,7 @@ shared-aixelerator-service-TF-test-job:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
+    - echo ${TMP}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./testAIxeleratorServiceTF.cpp.x
