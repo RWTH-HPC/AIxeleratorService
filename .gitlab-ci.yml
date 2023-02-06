@@ -62,7 +62,9 @@ shared-torch-inference-test-job:
     - echo ${PWD}
     - echo ${TMP}
     - cd ./BUILD-CI2/
-    - echo ${FLAGS_MPI_BATCH}
+    - ls ..
+    - ls ../models
+    - ls ../models/torchModels
     - ./test/testTorchInference.cpp.x
   variables:
     GIT_STRATEGY: none
