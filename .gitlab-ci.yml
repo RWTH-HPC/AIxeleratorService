@@ -74,6 +74,8 @@ shared-tensorflow-inference-test-job:
     - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
     - ./test/testTensorflowInference.cpp.x
+  variables:
+    GIT_STRATEGY: none
 
 shared-round-robin-distribution-test-job:
   stage: test
@@ -86,6 +88,8 @@ shared-round-robin-distribution-test-job:
     - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
+  variables:
+    GIT_STRATEGY: none
 
 shared-aixelerator-service-test-job:
   stage: test
@@ -98,6 +102,8 @@ shared-aixelerator-service-test-job:
     - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
+  variables:
+    GIT_STRATEGY: none
 
 shared-aixelerator-service-TF-test-job:
   stage: test
@@ -110,3 +116,5 @@ shared-aixelerator-service-TF-test-job:
     - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorServiceTF.cpp.x
+  variables:
+    GIT_STRATEGY: none
