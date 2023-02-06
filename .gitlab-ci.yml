@@ -86,7 +86,7 @@ shared-aixelerator-service-test-job:
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
 
-shared-aixelerator-service-test-job:
+shared-aixelerator-service-TF-test-job:
   stage: test
   extends: .shared-sequential-job
   script:
