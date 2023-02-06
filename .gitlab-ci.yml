@@ -55,6 +55,7 @@ shared-torch-inference-test-job:
   script:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - ./test/testTorchInference.cpp.x
@@ -65,6 +66,7 @@ shared-tensorflow-inference-test-job:
   script:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - ./test/testTensorflowInference.cpp.x
@@ -75,6 +77,7 @@ shared-round-robin-distribution-test-job:
   script:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
@@ -85,6 +88,7 @@ shared-aixelerator-service-test-job:
   script:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
@@ -95,6 +99,7 @@ shared-aixelerator-service-TF-test-job:
   script:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorServiceTF.cpp.x
