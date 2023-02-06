@@ -49,6 +49,8 @@ shared-build-job:
     - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ..
     - cmake --build . -j 8
     - echo ${PWD}
+  variables:
+    SLURM_PARAM_CPUS: "-c 8"
 
 shared-torch-inference-test-job:
   stage: test
@@ -62,6 +64,7 @@ shared-torch-inference-test-job:
     - ./test/testTorchInference.cpp.x
   variables:
     GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-c 1"
 
 shared-tensorflow-inference-test-job:
   stage: test
@@ -76,6 +79,7 @@ shared-tensorflow-inference-test-job:
     - ./test/testTensorflowInference.cpp.x
   variables:
     GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-c 1"
 
 shared-round-robin-distribution-test-job:
   stage: test
@@ -90,6 +94,7 @@ shared-round-robin-distribution-test-job:
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
   variables:
     GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-c 4"
 
 shared-aixelerator-service-test-job:
   stage: test
@@ -104,6 +109,7 @@ shared-aixelerator-service-test-job:
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
   variables:
     GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-c 4"
 
 shared-aixelerator-service-TF-test-job:
   stage: test
@@ -118,3 +124,4 @@ shared-aixelerator-service-TF-test-job:
     - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorServiceTF.cpp.x
   variables:
     GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-c 4"
