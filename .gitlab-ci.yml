@@ -50,7 +50,7 @@ shared-build-job:
     - cmake --build . -j 8
     - echo ${PWD}
   variables:
-    SLURM_PARAM_CPUS: "-c 8"
+    SLURM_PARAM_CPUS: "-c 1"
 
 shared-torch-inference-test-job:
   stage: test
