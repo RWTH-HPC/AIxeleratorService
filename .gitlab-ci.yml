@@ -58,7 +58,7 @@ shared-torch-inference-test-job:
     - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
-    - ./test/testTorchInference.cpp.x
+    - ./testTorchInference.cpp.x
 
 shared-tensorflow-inference-test-job:
   stage: test
@@ -69,7 +69,7 @@ shared-tensorflow-inference-test-job:
     - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
-    - ./test/testTensorflowInference.cpp.x
+    - ./testTensorflowInference.cpp.x
 
 shared-round-robin-distribution-test-job:
   stage: test
@@ -80,7 +80,7 @@ shared-round-robin-distribution-test-job:
     - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
-    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
+    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./testRoundRobinDistribution.cpp.x
 
 shared-aixelerator-service-test-job:
   stage: test
@@ -91,7 +91,7 @@ shared-aixelerator-service-test-job:
     - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
-    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
+    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./testAIxeleratorService.cpp.x
 
 shared-aixelerator-service-TF-test-job:
   stage: test
@@ -102,4 +102,4 @@ shared-aixelerator-service-TF-test-job:
     - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
-    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorServiceTF.cpp.x
+    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./testAIxeleratorServiceTF.cpp.x
