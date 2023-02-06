@@ -22,7 +22,12 @@ default:
 
 .shared-sequential-job:
   variables:
-    SLURM_PARAM_CPUS: "-c 1"
+    SLURM_PARAM_CPUS: "-c 48"
+    SLURM_PARAM: "--gres=gpu:volta:2"
+    SLURM_PARAM: "--account=rwth0792"
+    SLURM_PARAM: "--partition=c18g"
+    SLURM_PARAM: "--exclusive"
+    SLURM_PARAM: "--time=00:15:00"
     CI_MODE: "SingleSlurmJobAcrossStages"
 
 shared-build-job:
@@ -39,53 +44,54 @@ shared-build-job:
     - mkdir BUILD-CI2
     - cd BUILD-CI2
     - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ..
-    - cmake --build .
+    - cmake --build . -j 8
 
-
-
-build-job:       # This job runs in the build stage, which runs first.
-  stage: build
-  script:
-    - echo "Compiling the code..."
-    - echo "Compile complete."
-
-torch-inference-test-job:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
-  variables:
-    CI_MODE: "Sbatch"
-    BATCH_SCRIPT: "test/testTorchInference.sh"
-  script:
-   - echo "Script is not executed for Sbatch jobs?"
-
-tensorflow-inference-test-job:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
-  variables:
-    CI_MODE: "Sbatch"
-    BATCH_SCRIPT: "test/testTensorflowInference.sh"
-  script:
-   - echo "Script is not executed for Sbatch jobs?"
-
-round-robin-distribution-test-job:
+shared-torch-inference-test-job:
   stage: test
-  variables:
-    CI_MODE: "Sbatch"
-    BATCH_SCRIPT: "test/testRoundRobinDistribution.sh"
+  extends: .shared-sequential-job
   script:
-    - echo "Script is not executed for Sbatch jobs?"
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - cd ./BUILD/test
+    - echo ${FLAGS_MPI_BATCH}
+    - ./test/testTorchInference.cpp.x
 
-aixelerator-service-test-job:
+shared-tensorflow-inference-test-job:
   stage: test
-  variables:
-    CI_MODE: "Sbatch"
-    BATCH_SCRIPT: "test/testAIxeleratorService.sh"
+  extends: .shared-sequential-job
   script:
-    - echo "Script is not executed for Sbatch jobs?"
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - cd ./BUILD/test
+    - echo ${FLAGS_MPI_BATCH}
+    - ./test/testTensorflowInference.cpp.x
 
-aixelerator-service-TF-test-job:
+shared-round-robin-distribution-test-job:
   stage: test
-  variables:
-    CI_MODE: "Sbatch"
-    BATCH_SCRIPT: "test/testAIxeleratorServiceTF.sh"
+  extends: .shared-sequential-job
   script:
-    - echo "Script is not executed for Sbatch jobs?"
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - cd ./BUILD/test
+    - echo ${FLAGS_MPI_BATCH}
+    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
 
+shared-aixelerator-service-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - cd ./BUILD/test
+    - echo ${FLAGS_MPI_BATCH}
+    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
+
+shared-aixelerator-service-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - cd ./BUILD/test
+    - echo ${FLAGS_MPI_BATCH}
+    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorServiceTF.cpp.x
