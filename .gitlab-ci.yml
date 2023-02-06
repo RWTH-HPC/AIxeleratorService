@@ -47,11 +47,9 @@ shared-build-job:
     - echo ${PWD}
     - echo ${TMP}
     - echo ${CI_PROJECT_DIR}
-    - cd ${TMP}
-    - echo ${PWD}
     - mkdir BUILD-CI2
     - cd BUILD-CI2
-    - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ${CI_PROJECT_DIR}
+    - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ..
     - cmake --build . -j 8
     - echo ${PWD}
 
@@ -63,11 +61,11 @@ shared-torch-inference-test-job:
     - echo "Testing on $(hostname) into $TMP"
     - echo ${PWD}
     - echo ${TMP}
-    - cd ${TMP}
-    - echo ${PWD}
     - cd ./BUILD-CI2/test
     - echo ${FLAGS_MPI_BATCH}
     - ./testTorchInference.cpp.x
+  variables:
+    GIT_STRATEGY: none
 
 .shared-tensorflow-inference-test-job:
   stage: test
