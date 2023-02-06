@@ -41,6 +41,7 @@ shared-build-job:
     - echo "Building on $(hostname) into $TMP"
     - echo ${PWD}
     - echo ${TMP}
+    - echo ${CI_PROJECT_DIR}
     - module load gcc/10.3
     - module load cuda/11.4
     - module load cudnn/8.3.2
@@ -49,7 +50,7 @@ shared-build-job:
     - echo ${PWD}
     - mkdir BUILD-CI2
     - cd BUILD-CI2
-    - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ..
+    - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ${CI_PROJECT_DIR}
     - cmake --build . -j 8
     - echo ${PWD}
 
