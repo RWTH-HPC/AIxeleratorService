@@ -94,10 +94,11 @@ shared-round-robin-distribution-test-job:
     - echo ${TMP}
     - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
-    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
+    - mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
   variables:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
+    SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
   needs: ["shared-tensorflow-inference-test-job"]
 
 shared-aixelerator-service-test-job:
@@ -110,7 +111,7 @@ shared-aixelerator-service-test-job:
     - echo ${TMP}
     - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
-    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
+    - mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x
   variables:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
@@ -127,7 +128,7 @@ shared-aixelerator-service-TF-test-job:
     - echo ${TMP}
     - cd ./BUILD
     - echo ${FLAGS_MPI_BATCH}
-    - CUDA_VISIBLE_DEVICES=1 mpiexec.hydra -np 4 ./test/testAIxeleratorServiceTF.cpp.x
+    - mpiexec.hydra -np 4 ./test/testAIxeleratorServiceTF.cpp.x
   variables:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
