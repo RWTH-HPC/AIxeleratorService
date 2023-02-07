@@ -21,10 +21,18 @@ TensorflowInference::TensorflowInference()
 
 TensorflowInference::~TensorflowInference()
 {
+    // TODO: only GPU-Controller ranks should create TFInference object in AIxeleratorService
+    // currently causing a nullptr error
+    /*
     TF_DeleteTensor(input_batch_);
     TF_DeleteTensor(output_batch_);
-    TF_DeleteTensor(input_remainder_);
-    TF_DeleteTensor(output_remainder_);
+
+    if( size_remaining_ > 0)
+    {
+        TF_DeleteTensor(input_remainder_);
+        TF_DeleteTensor(output_remainder_);
+    }
+    */
 }
 
 void TensorflowInference::initSession()
