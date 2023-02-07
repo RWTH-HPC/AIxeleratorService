@@ -29,7 +29,6 @@ variables:
     SLURM_PARAM_GPUS: "--gres=gpu:volta:2"
     SLURM_PARAM_ACCOUNT: "--account=rwth0792"
     SLURM_PARAM_PARTITION: "--partition=c18g"
-    SLURM_PARAM_EXCLUSIVE: "--exclusive"
     SLURM_PARAM_TIME: "--time=00:15:00"
     CI_MODE: "SingleSlurmJobAcrossStages"
   before_script:
@@ -51,6 +50,8 @@ shared-build-job:
     - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ..
     - cmake --build . -j 8
     - echo ${PWD}
+  variables:
+    SLURM_PARAM_EXCLUSIVE: "--exclusive"
 
 shared-torch-inference-test-job:
   stage: test
@@ -75,7 +76,6 @@ shared-tensorflow-inference-test-job:
     - echo ${PWD}
     - echo ${TMP}
     - cd ./BUILD
-    - echo ${FLAGS_MPI_BATCH}
     - ./test/testTensorflowInference.cpp.x
   variables:
     GIT_STRATEGY: none
