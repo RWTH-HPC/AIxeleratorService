@@ -28,6 +28,7 @@ variables:
     SLURM_PARAM_CPUS: "-c 48"
     SLURM_PARAM_ACCOUNT: "--account=rwth0792"
     SLURM_PARAM_PARTITION: "--partition=c18g"
+    SLURM_PARAM_GPUS: "--gres=gpu:volta:2"
     SLURM_PARAM_TIME: "--time=00:15:00"
     CI_MODE: "SingleSlurmJobAcrossStages"
   before_script:
@@ -51,7 +52,6 @@ shared-build-job:
     - echo ${PWD}
   variables:
     SLURM_PARAM_EXCLUSIVE: "--exclusive"
-    SLURM_PARAM_GPUS: "--gres=gpu:volta:2"
 
 shared-torch-inference-test-job:
   stage: test
@@ -82,6 +82,7 @@ shared-tensorflow-inference-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 1"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
+  needs: ["shared-torch-inference-test-job"]
 
 shared-round-robin-distribution-test-job:
   stage: test
@@ -97,6 +98,7 @@ shared-round-robin-distribution-test-job:
   variables:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
+  needs: ["shared-tensorflow-inference-test-job"]
 
 shared-aixelerator-service-test-job:
   stage: test
@@ -113,6 +115,7 @@ shared-aixelerator-service-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
+  needs: ["shared-round-robin-distribution-test-job"]
 
 shared-aixelerator-service-TF-test-job:
   stage: test
@@ -129,3 +132,4 @@ shared-aixelerator-service-TF-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
+  needs: ["shared-aixelerator-service-test-job"]
