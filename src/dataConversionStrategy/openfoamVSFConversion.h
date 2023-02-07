@@ -10,6 +10,6 @@ class OpenfoamVSFConversion : public DataConversionStrategy
         void tensorToFields(double* tensor, std::vector<void*> fields) override;
 
     private:
-}
+};
 
 #endif

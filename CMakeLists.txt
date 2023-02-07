@@ -11,6 +11,7 @@ endif()
 
 set(CMAKE_BUILD_TYPE Debug)
 
+option(BUILD_SHARED_LIBS "Build shared instead of static libraries" ON)
 option(BUILD_TESTS "Build tests" ON)
 
 find_package(Torch REQUIRED)
@@ -28,6 +29,11 @@ find_package(MPI REQUIRED)
 set(TENSORFLOW_INCLUDE_DIRS ${Tensorflow_DIR}/include)
 set(TENSORFLOW_LIB_DIR ${Tensorflow_DIR}/lib)
 set(TENSORFLOW_LIBRARIES ${TENSORFLOW_LIB_DIR}/libtensorflow.so ${TENSORFLOW_LIB_DIR}/libtensorflow_framework.so)
+
+# find OpenFOAM
+set(OPENFOAM_INCLUDE_DIRS ${OPENFOAM_DIR}/src/OpenFOAM/lnInclude ${OPENFOAM_DIR}/src/finiteVolume/lnInclude)
+
+add_subdirectory(src)
 
 if(BUILD_TESTS)
   add_subdirectory(test)

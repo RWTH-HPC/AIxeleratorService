@@ -21,7 +21,10 @@ TensorflowInference::TensorflowInference()
 
 TensorflowInference::~TensorflowInference()
 {
-
+    TF_DeleteTensor(input_batch_);
+    TF_DeleteTensor(output_batch_);
+    TF_DeleteTensor(input_remainder_);
+    TF_DeleteTensor(output_remainder_);
 }
 
 void TensorflowInference::initSession()

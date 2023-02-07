@@ -9,5 +9,5 @@ Variables to set for intellisense
 
 ## Cmake
 ```
-Torch_DIR=<path/to/torch> cmake -DTensorflow_DIR=<path/to/tensorflow> ..
+Torch_DIR=<path/to/torch> cmake -DTensorflow_DIR=<path/to/tensorflow> -DOPENFOAM_DIR=<path/to/openfoam> ..
 ```

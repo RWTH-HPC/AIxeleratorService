@@ -40,8 +40,6 @@ class TensorflowInference : public InferenceStrategy
         TF_SessionOptions* session_opts_;
         TF_Session* session_;
 
-        //TF_Tensor* input_;
-        //TF_Tensor* output_;
         TF_Tensor* input_batch_;
         size_t input_batch_len_;
         TF_Tensor* output_batch_;
@@ -51,10 +49,7 @@ class TensorflowInference : public InferenceStrategy
         TF_Tensor* output_remainder_;
         size_t output_remainder_len_;
 
-        std::vector<TF_Tensor*> input_tensors_;
-        std::vector<TF_Tensor*> output_tensors_;
         std::vector<int> tensor_offsets_;
-        std::vector<int> tensor_sizes_;
 
         double* app_input_;
         double* app_output_;

@@ -1,16 +1,18 @@
 #ifndef AIXELERATORSERVICE_DATACONVERSIONSTRATEGY_H_
 #define AIXELERATORSERVICE_DATACONVERSIONSTRATEGY_H_
 
+#include <vector>
+
 class DataConversionStrategy
 {
     public:
         ~DataConversionStrategy() = default;
 
         // the concrete strategy should know what the actual type of field is
-        virtual void fieldToTensor(void* field, double* tensor);
-        virtual void tensorToField(double* tensor, void* field);
+        virtual void fieldsToTensor(std::vector<void*> fields, double* tensor);
+        virtual void tensorToFields(double* tensor, std::vector<void*> fields);
 
     protected:
-}
+};
 
 #endif
