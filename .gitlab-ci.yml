@@ -67,6 +67,7 @@ shared-torch-inference-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 1"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
+    SLURM_PARAM_OVERSUBSCRIBE: "--oversubscribe"
 
 shared-tensorflow-inference-test-job:
   stage: test
@@ -82,7 +83,8 @@ shared-tensorflow-inference-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 1"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
-  needs: ["shared-torch-inference-test-job"]
+    SLURM_PARAM_OVERSUBSCRIBE: "--oversubscribe"
+  #needs: ["shared-torch-inference-test-job"]
 
 shared-round-robin-distribution-test-job:
   stage: test
@@ -99,7 +101,8 @@ shared-round-robin-distribution-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
-  needs: ["shared-tensorflow-inference-test-job"]
+    SLURM_PARAM_OVERSUBSCRIBE: "--oversubscribe"
+  #needs: ["shared-tensorflow-inference-test-job"]
 
 shared-aixelerator-service-test-job:
   stage: test
@@ -116,7 +119,8 @@ shared-aixelerator-service-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
-  needs: ["shared-round-robin-distribution-test-job"]
+    SLURM_PARAM_OVERSUBSCRIBE: "--oversubscribe"
+  #needs: ["shared-round-robin-distribution-test-job"]
 
 shared-aixelerator-service-TF-test-job:
   stage: test
@@ -133,4 +137,5 @@ shared-aixelerator-service-TF-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
-  needs: ["shared-aixelerator-service-test-job"]
+    SLURM_PARAM_OVERSUBSCRIBE: "--oversubscribe"
+  #needs: ["shared-aixelerator-service-test-job"]
