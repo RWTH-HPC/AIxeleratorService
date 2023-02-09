@@ -77,7 +77,7 @@ void TensorflowInference::initTensors(
     int second_dim = input_shape[1];
     num_batches_ = batch_dim / batchsize_;
     size_remaining_ = batch_dim % batchsize_;
-    int num_tensors = size_remaining_ > 0 ? num_batches_ : num_batches_ + 1;
+    int num_tensors = size_remaining_ > 0 ? num_batches_ + 1 : num_batches_;
     tensor_offsets_.resize(num_tensors);
     for(int i = 0; i < num_tensors; i++)
     {
@@ -162,7 +162,7 @@ void TensorflowInference::inference()
     if(size_remaining_ > 0)
     {
         double* input_remainder_data = (double*) TF_TensorData(input_remainder_);  
-        std::memcpy(input_remainder_data, &(app_input_)[tensor_offsets_[num_batches_+1]], input_remainder_len_); 
+        std::memcpy(input_remainder_data, &(app_input_)[tensor_offsets_[num_batches_]], input_remainder_len_); 
 
         TF_SessionRun(session_, NULL, graph_inputs_, &input_remainder_, num_graph_inputs_, graph_outputs_, &output_remainder_, num_graph_outputs_, NULL, 0, NULL, status_);
         if (TF_GetCode(status_))
@@ -171,6 +171,6 @@ void TensorflowInference::inference()
         }
 
         double* output_remainder_data = (double*) TF_TensorData(output_remainder_);
-        std::memcpy(&(app_output_)[tensor_offsets_[num_batches_+1]], output_remainder_data, output_remainder_len_);
+        std::memcpy(&(app_output_)[tensor_offsets_[num_batches_]], output_remainder_data, output_remainder_len_);
     }
 }

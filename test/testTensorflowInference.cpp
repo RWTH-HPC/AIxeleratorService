@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     double* output_data = new double[8] { -13.37, -13.37, -13.37, -13.37, -13.37, -13.37, -13.37, -13.37 };
     
 
-    int batchsize = 1;
+    int batchsize = 3;
     int device_id = 0;
 
     std::string model_file_name = "../models/tensorflowModels/flexMLP-2x100x100x2.tf";
