@@ -1,4 +1,4 @@
-add_library(AIxeleratorServiceLib)
+add_library(AIxeleratorServiceLib SHARED)
 target_sources(
     AIxeleratorServiceLib PRIVATE 
         distributionStrategy/roundRobinDistribution.cpp inferenceStrategy/torchInference.cpp inferenceStrategy/tensorflowInference.cpp aixeleratorService.cpp

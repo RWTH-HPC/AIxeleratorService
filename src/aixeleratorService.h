@@ -2,7 +2,10 @@
 #define AIXELERATORSERVICE_H_
 
 #include "distributionStrategy/distributionStrategy.h"
+
+
 #include "inferenceStrategy/inferenceStrategy.h"
+
 
 #include <memory>
 
@@ -10,12 +13,21 @@ typedef enum AIFramework
 {
     AIX_TORCH = 1,
     AIX_TENSORFLOW = 2,
+    AIX_UNKNOWN
 } AIFramework;
 
 class AIxeleratorService
 {
     public:
-        AIxeleratorService();
+        AIxeleratorService() = delete;
+        AIxeleratorService(
+            std::string model_file,
+            std::vector<int64_t> input_shape, double* input_data,
+            std::vector<int64_t> output_shape, double* output_data,
+            int batchsize
+        );
+
+        ~AIxeleratorService() = default;
 
         void registerModel(std::string model_file);
         void registerTensors(
@@ -32,13 +44,12 @@ class AIxeleratorService
         double* input_data_;
         double* output_data_;
         int batchsize_;
-
-        int my_rank_;
         AIFramework framework_;
 
-        // make unique ptrs
-        std::unique_ptr<InferenceStrategy> inferencing_;
         std::unique_ptr<DistributionStrategy> distributor_;
+        std::unique_ptr<InferenceStrategy> inferencing_;
+
+        void initInferenceStrategy();
 };
 
 #endif

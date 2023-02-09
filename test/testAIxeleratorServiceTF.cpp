@@ -11,6 +11,8 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
+    std::string model_file = "../models/tensorflowModels/flexMLP-2x100x100x2.tf";
+
     std::vector<int64_t> input_shape = { 1, 2 };
     std::vector<double> input = { (double)my_rank, (double)my_rank };
 
@@ -19,16 +21,22 @@ int main(int argc, char *argv[])
 
     int batchsize = 3;
 
-    AIxeleratorService aixelerator;
-    std::string model_file = "../models/tensorflowModels/flexMLP-2x100x100x2.tf";
-    aixelerator.registerModel(model_file);
-
     std::cout << "MPI Rank " << my_rank << ": registering input tensor for AIxeleratorService = (" << input[0] << ", " << input[1] << ")" << std::endl;
-    aixelerator.registerTensors(input_shape, input.data(), output_shape, output.data());
+
+    AIxeleratorService aixelerator(
+        model_file,
+        input_shape, input.data(),
+        output_shape, output.data(),
+        batchsize
+    );
+    
+    //aixelerator.registerModel(model_file);
+
+    //aixelerator.registerTensors(input_shape, input.data(), output_shape, output.data());
 
     std::cout << "MPI Rank " << my_rank << ": calling inference!" << std::endl;
 
-    aixelerator.setBatchsize(batchsize);
+    //aixelerator.setBatchsize(batchsize);
     aixelerator.inference();
 
     std::cout << "MPI Rank " << my_rank << ": received output from AIxeleratorService = (" << output[0] << ", " << output[1] << ")" << std::endl;

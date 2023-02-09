@@ -69,3 +69,17 @@ foreach(TEST ${AIXELERATOR_TESTS})
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
     target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
 endforeach(TEST)
+
+
+
+message(STATUS "Creating AIxelerator LIB test")
+add_executable(testAIxeleratorLib.x testAIxeleratorService.cpp)
+target_sources(testAIxeleratorLib.x PRIVATE testAIxeleratorService.cpp)
+target_include_directories(testAIxeleratorLib.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
+target_link_libraries(testAIxeleratorLib.x PRIVATE ${MPI_LIBRARIES})
+target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
+target_link_libraries(testAIxeleratorLib.x PRIVATE ${TORCH_LIBRARIES})
+target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+target_link_libraries(testAIxeleratorLib.x PRIVATE ${TENSORFLOW_LIBRARIES})
+target_link_libraries(testAIxeleratorLib.x PRIVATE AIxeleratorServiceLib)
