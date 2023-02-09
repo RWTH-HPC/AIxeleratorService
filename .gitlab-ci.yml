@@ -68,8 +68,8 @@ shared-torch-inference-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 1"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
-    SLURM_PARAM_OVERLAP: "--oversubscribe"
-    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
 
 shared-tensorflow-inference-test-job:
@@ -86,10 +86,10 @@ shared-tensorflow-inference-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 1"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
-    SLURM_PARAM_OVERLAP: "--oversubscribe"
-    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
-  #needs: ["shared-torch-inference-test-job"]
+  needs: ["shared-torch-inference-test-job"]
 
 shared-round-robin-distribution-test-job:
   stage: test
@@ -106,10 +106,10 @@ shared-round-robin-distribution-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
-    SLURM_PARAM_OVERLAP: "--oversubscribe"
-    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
-  #needs: ["shared-tensorflow-inference-test-job"]
+  needs: ["shared-tensorflow-inference-test-job"]
 
 shared-aixelerator-service-test-job:
   stage: test
@@ -126,10 +126,10 @@ shared-aixelerator-service-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
-    SLURM_PARAM_OVERLAP: "--oversubscribe"
-    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
-  #needs: ["shared-round-robin-distribution-test-job"]
+  needs: ["shared-round-robin-distribution-test-job"]
 
 shared-aixelerator-service-TF-test-job:
   stage: test
@@ -146,7 +146,7 @@ shared-aixelerator-service-TF-test-job:
     GIT_STRATEGY: none
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
-    SLURM_PARAM_OVERLAP: "--oversubscribe"
-    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
-  #needs: ["shared-aixelerator-service-test-job"]
+  needs: ["shared-aixelerator-service-test-job"]
