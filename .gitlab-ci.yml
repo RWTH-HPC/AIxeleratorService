@@ -52,6 +52,7 @@ shared-build-job:
     - echo ${PWD}
   variables:
     SLURM_PARAM_EXCLUSIVE: "--exclusive"
+    SLURM_PARAM_MEMORY: "--mem=0"
 
 shared-torch-inference-test-job:
   stage: test
@@ -68,6 +69,8 @@ shared-torch-inference-test-job:
     SLURM_PARAM_CPUS: "-n 1 -c 1"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
     SLURM_PARAM_OVERLAP: "--overlap"
+    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=3G"
+    SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
 
 shared-tensorflow-inference-test-job:
   stage: test
@@ -84,6 +87,8 @@ shared-tensorflow-inference-test-job:
     SLURM_PARAM_CPUS: "-n 1 -c 1"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
     SLURM_PARAM_OVERLAP: "--overlap"
+    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=3G"
+    SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
   #needs: ["shared-torch-inference-test-job"]
 
 shared-round-robin-distribution-test-job:
@@ -102,6 +107,8 @@ shared-round-robin-distribution-test-job:
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
     SLURM_PARAM_OVERLAP: "--overlap"
+    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=3G"
+    SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
   #needs: ["shared-tensorflow-inference-test-job"]
 
 shared-aixelerator-service-test-job:
@@ -120,6 +127,8 @@ shared-aixelerator-service-test-job:
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
     SLURM_PARAM_OVERLAP: "--overlap"
+    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=3G"
+    SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
   #needs: ["shared-round-robin-distribution-test-job"]
 
 shared-aixelerator-service-TF-test-job:
@@ -138,4 +147,6 @@ shared-aixelerator-service-TF-test-job:
     SLURM_PARAM_CPUS: "-n 1 -c 4"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
     SLURM_PARAM_OVERLAP: "--overlap"
+    SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=3G"
+    SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
   #needs: ["shared-aixelerator-service-test-job"]
