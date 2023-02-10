@@ -6,7 +6,7 @@
 #include <numeric>
 
 
-RoundRobinDistribution::RoundRobinDistribution(std::vector<int64_t> input_shape, double* input_data, std::vector<int64_t> output_shape, double* output_data)
+RoundRobinDistribution::RoundRobinDistribution(std::vector<int64_t> input_shape, double* input_data, std::vector<int64_t> output_shape, double* output_data) 
 {
     work_group_comm_ = MPI_COMM_WORLD;
     createWorkgroups();
@@ -83,8 +83,11 @@ RoundRobinDistribution::RoundRobinDistribution(std::vector<int64_t> input_shape,
 
 RoundRobinDistribution::~RoundRobinDistribution()
 {
-    delete[] input_data_controller_;
-    delete[] output_data_controller_;
+    if( isGPUController() )
+    {
+        delete[] input_data_controller_;
+        delete[] output_data_controller_;
+    }
 }
 
 void RoundRobinDistribution::createWorkgroups()
@@ -116,12 +119,16 @@ void RoundRobinDistribution::createWorkgroups()
          std::cout << "Rank " << my_rank << "/" << num_procs << " on its local machine is " << node_rank << "/" << node_size << " is the GPU controller!" << std::endl; 
          my_gpu_device_ = node_rank;
     }
+    else
+    {
+        my_gpu_device_ = -1;
+    }
 
     // figure out the total number of gpus across all nodes
-    int total_gpu_count = 0;
+    num_devices_total_ = 0;
     int my_num_devices = is_gpu_controller_ ? 1 : 0;
-    MPI_Allreduce(&my_num_devices, &total_gpu_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-    std::cout << "Rank " << my_rank << "/" << num_procs << " knows that there is a total of " << total_gpu_count << " GPUs across all systems" << std::endl;
+    MPI_Allreduce(&my_num_devices, &num_devices_total_, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    std::cout << "Rank " << my_rank << "/" << num_procs << " knows that there is a total of " << num_devices_total_ << " GPUs across all systems" << std::endl;
 
     // combine controllers (and workers) into separate communicators, to enumerate them
     MPI_Comm work_type_comm;
@@ -132,8 +139,8 @@ void RoundRobinDistribution::createWorkgroups()
     MPI_Comm_free(&work_type_comm);
 
     // round robin assignment of data to a gpu, making sure the gpu master is rank 0
-    int color = work_type_rank % total_gpu_count;
-    int order = is_gpu_controller_ ? 0 : my_rank + total_gpu_count;
+    int color = work_type_rank % num_devices_total_;
+    int order = is_gpu_controller_ ? 0 : my_rank + num_devices_total_;
     std::cout << "Rank " << my_rank << "/" << num_procs << " will be in group " << color << " order " << order << std::endl;
 
     // initialize the work group communicator

@@ -44,7 +44,8 @@ void TensorflowInference::initSession()
     // see also: https://github.com/apivovarov/TF_C_API/blob/master/config.cc
     // for a single GPU, the last value seems to indicate the GPU, counting up from 0x30
     const size_t config_len = 5;
-    uint8_t config[config_len] = {0x32, 0x3, 0x2a, 0x1, 0x30 + device_id_};
+    uint8_t config[config_len] = {0x32, 0x3, 0x2a, 0x1, 0x30};
+    config[config_len - 1] = 0x30 + device_id_;
     TF_SetConfig(session_opts_, (void*)config, config_len, status_);
     const char* tags = "serve";  // must include the set of tags used to identify one MetaGraphDef in the SavedModel
     int num_tags = 1;

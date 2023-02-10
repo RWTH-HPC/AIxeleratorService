@@ -15,6 +15,7 @@ class DistributionStrategy
 
         bool isGPUController(){ return is_gpu_controller_; }
         int getDeviceID(){ return my_gpu_device_; }
+        int getNumDevicesTotal(){ return num_devices_total_; }
 
         double* getInputDataController(){ return input_data_controller_; }
         double* getOutputDataController(){ return output_data_controller_; }
@@ -25,6 +26,7 @@ class DistributionStrategy
     protected:
         bool is_gpu_controller_;
         int my_gpu_device_;
+        int num_devices_total_;
 
         double* input_data_controller_;
         double* output_data_controller_;

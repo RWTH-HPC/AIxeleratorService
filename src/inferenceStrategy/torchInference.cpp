@@ -53,14 +53,28 @@ void TorchInference::inference()
         num_batches++;
     }
 
-    for( int i = 0; i < num_batches; i++)
+    if (device_id_ > -1)
     {
-        input_batch_ = input_.slice(0, batchsize_*i, batchsize_*(i+1));
-        input_gpu_ = input_batch_.to(torch::Device(torch::kCUDA, device_id_));
-        std::vector<torch::jit::IValue> inputs = {input_gpu_};
-        output_gpu_ = torch_model_.forward(inputs).toTensor();
-        output_.slice(0, batchsize_*i, batchsize_*(i+1)) = output_gpu_.to(torch::kCPU);
+        for( int i = 0; i < num_batches; i++)
+        {
+            input_batch_ = input_.slice(0, batchsize_*i, batchsize_*(i+1));
+            input_gpu_ = input_batch_.to(torch::Device(torch::kCUDA, device_id_));
+            std::vector<torch::jit::IValue> inputs = {input_gpu_};
+            output_gpu_ = torch_model_.forward(inputs).toTensor();
+            output_.slice(0, batchsize_*i, batchsize_*(i+1)) = output_gpu_.to(torch::kCPU);
+        }
     }
+    else
+    {
+        for( int i = 0; i < num_batches; i++)
+        {
+            input_batch_ = input_.slice(0, batchsize_*i, batchsize_*(i+1));
+            std::vector<torch::jit::IValue> inputs = {input_batch_};
+            output_batch_ = torch_model_.forward(inputs).toTensor();
+            output_.slice(0, batchsize_*i, batchsize_*(i+1)) = output_batch_.to(torch::kCPU);
+        }   
+    }
+    
     
 
 }

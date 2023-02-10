@@ -19,7 +19,22 @@ AIxeleratorService::AIxeleratorService(
         batchsize_{batchsize}, 
         distributor_{std::make_unique<RoundRobinDistribution>(input_shape, input_data, output_shape, output_data)}
 {
+    int num_devices_total = distributor_->getNumDevicesTotal();
+    if (num_devices_total > 0)
+    {
+        inference_mode_ = AIX_GPU;    
+    }
+    else
+    {
+        inference_mode_ = AIX_CPU;
+        batchsize_ = std::min<int>(batchsize_, input_shape_[0]); // TODO(fabian): is that the right place to check it?
+    }
+
     registerModel(model_file);
+    if( framework_ == AIX_TENSORFLOW && inference_mode_ == AIX_CPU)
+    {
+        std::cerr << "Error: AIxeleratorService does not support pure CPU inference with Tensorflow (yet)." << std::endl;
+    }
     
     initInferenceStrategy();
 }
@@ -27,12 +42,16 @@ AIxeleratorService::AIxeleratorService(
 AIFramework getAIFrameworkFromModel(std::string model_file)
 {
     // note(fabian): string.ends_with() requires C++20
-    if ( model_file.ends_with(std::string_view(".pt")) )
+    int len = model_file.length();
+    std::string suffix = model_file.substr(len-3);
+    //if ( model_file.ends_with(std::string_view(".pt")) )
+    if ( suffix == ".pt" )
     {
         return AIX_TORCH;
     }
     
-    if ( model_file.ends_with(std::string_view(".pb")) || model_file.ends_with(std::string_view(".tf")) )
+    //if ( model_file.ends_with(std::string_view(".pb")) || model_file.ends_with(std::string_view(".tf")) )
+    if ( (suffix == ".pb") || (suffix == ".tf") )
     {
         return AIX_TENSORFLOW;
     }
@@ -64,17 +83,34 @@ void AIxeleratorService::registerModel(std::string model_file)
 
 void AIxeleratorService::initInferenceStrategy()
 {
-    if (distributor_->isGPUController())
+    switch(inference_mode_)
     {
-        int device_id = distributor_->getDeviceID();
-        double* input_data_controller = distributor_->getInputDataController();
-        double* output_data_controller = distributor_->getOutputDataController();
+        case AIX_GPU:
+            if (distributor_->isGPUController())
+            {
+                int device_id = distributor_->getDeviceID();
+                double* input_data_controller = distributor_->getInputDataController();
+                double* output_data_controller = distributor_->getOutputDataController();
 
-        std::vector<int64_t> input_shape_controller = distributor_->getInputShapeController();
-        std::vector<int64_t> output_shape_controller = distributor_->getOutputShapeController();
+                std::vector<int64_t> input_shape_controller = distributor_->getInputShapeController();
+                std::vector<int64_t> output_shape_controller = distributor_->getOutputShapeController();
 
-        inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_controller, input_data_controller, output_shape_controller, output_data_controller);
+                inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_controller, input_data_controller, output_shape_controller, output_data_controller);
+            }
+            break;
+        case AIX_CPU:
+            if (!distributor_->isGPUController())
+            {
+                int device_id = distributor_->getDeviceID();
+                inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_, input_data_, output_shape_, output_data_);
+            }
+            break;
+        default:
+            std::cerr << "Error: AIxeleratorService inference mode: " << inference_mode_ << std::endl;
+            break;
     }
+
+    
 }
 
 void AIxeleratorService::registerTensors(
@@ -95,15 +131,27 @@ void AIxeleratorService::registerTensors(
 void AIxeleratorService::inference()
 {
     // TODO: add local data copy
-
-    distributor_->gatherInputData();
-
-    if ( distributor_->isGPUController() )
+    if ( inference_mode_ == AIX_GPU )
     {
-        inferencing_->inference();
+        distributor_->gatherInputData();
+
+        if ( distributor_->isGPUController() )
+        {
+            inferencing_->inference();
+        }
+
+        distributor_->scatterOutputData();
+    }
+    else if ( inference_mode_ == AIX_CPU )
+    {
+        inferencing_->inference();   
+    }
+    else
+    {
+        std::cerr << "Error: AIxeleratorService does not support inference_mode " << inference_mode_ << std::endl;
     }
 
-    distributor_->scatterOutputData();
+    
 
     // TODO: add local data copy
 }

@@ -16,6 +16,13 @@ typedef enum AIFramework
     AIX_UNKNOWN
 } AIFramework;
 
+typedef enum InferenceMode
+{
+    AIX_CPU = 1,
+    AIX_GPU = 2,
+    AIX_HYBRID = 3 // NYI
+} InferenceMode;
+
 class AIxeleratorService
 {
     public:
@@ -43,8 +50,9 @@ class AIxeleratorService
         std::vector<int64_t> output_shape_;
         double* input_data_;
         double* output_data_;
-        int batchsize_;
+        int batchsize_; // TODO: remove this
         AIFramework framework_;
+        InferenceMode inference_mode_;
 
         std::unique_ptr<DistributionStrategy> distributor_;
         std::unique_ptr<InferenceStrategy> inferencing_;
