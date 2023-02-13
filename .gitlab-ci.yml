@@ -32,7 +32,11 @@ variables:
     SLURM_PARAM_TIME: "--time=00:15:00"
     CI_MODE: "SingleSlurmJobAcrossStages"
   before_script:
-    - module load gcc/10.3
+    - module purge
+    - module load DEVELOP
+    - module load gcc/8
+    - module load intel/19.0
+    - module load intelmpi
     - module load cuda/11.4
     - module load cudnn/8.3.2
     - module load cmake/3.21.1
@@ -170,3 +174,13 @@ shared-aixelerator-service-CPU-test-job:
     #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
   needs: ["shared-aixelerator-service-TF-test-job"]
+
+aixelerator-service-hetjob-test-job:
+  stage: test
+  variables:
+    CI_MODE: "Sbatch"
+    BATCH_SCRIPT: "test/testAixeleratorServiceHetjob.sh"
+  script: 
+    - echo "Script is not executed for Sbatch jobs?"
+
+

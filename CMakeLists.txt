@@ -24,6 +24,27 @@ find_package(MPI REQUIRED)
 #    message(STATUS "${_variableName}=${${_variableName}}")
 #endforeach()
 
+# remove libcuda from TORCH_LIBRARIES
+message(STATUS "Torch Libraries defined by FindTorch = ${TORCH_LIBRARIES}")
+set(TORCH_LIBRARIES_TMP "")
+foreach (_lib ${TORCH_LIBRARIES})
+  #message(STATUS "Current TORCH_LIBRARIES_TMP = ${TORCH_LIBRARIES_TMP}")
+  string(FIND "${_lib}" "libcuda.so" LIB_CUDA_CONTAINED)
+  #message(STATUS "Current lib = ${_lib}")
+  if(LIB_CUDA_CONTAINED EQUAL -1)
+    #message(STATUS "Current lib = ${_lib} is not CUDA")
+    if(TORCH_LIBRARIES_TMP STREQUAL "")
+      #message(STATUS "Current lib = ${_lib} equal empty")
+      set(TORCH_LIBRARIES_TMP "${_lib}")
+    else()
+      #message(STATUS "Current lib = ${_lib} notequal empty")
+      set(TORCH_LIBRARIES_TMP "${TORCH_LIBRARIES_TMP};${_lib}")
+    endif()
+  endif()
+endforeach()
+message(STATUS "modified Torch Libraries = ${TORCH_LIBRARIES_TMP}")
+set(TORCH_LIBRARIES ${TORCH_LIBRARIES_TMP})
+
 # simulate a findTensorflow.cmake
 # Tensorflow_DIR needs to be passed to CMAKE configure
 set(TENSORFLOW_INCLUDE_DIRS ${Tensorflow_DIR}/include)
