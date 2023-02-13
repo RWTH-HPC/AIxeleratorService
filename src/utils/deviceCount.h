@@ -11,10 +11,16 @@ int deviceCount()
     if(cuda_rt == NULL)
     {
         count = 0;
+        std::cout << "Could not open LIBCUDA" << std::endl;
     }
     else{
+        std::cout << "Successfully opened LIBCUDA" << std::endl;
         void (*getDeviceCount)(int*) = (void(*)(int*)) dlsym(cuda_rt, "cudaGetDeviceCount");
         getDeviceCount(&count);  
+        if ( count == -1)
+        {
+            count = 0;
+        }
     }
     return count;
 }

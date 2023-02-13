@@ -99,11 +99,8 @@ void AIxeleratorService::initInferenceStrategy()
             }
             break;
         case AIX_CPU:
-            if (!distributor_->isGPUController())
-            {
-                int device_id = distributor_->getDeviceID();
-                inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_, input_data_, output_shape_, output_data_);
-            }
+            int device_id = -1;
+            inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_, input_data_, output_shape_, output_data_);
             break;
         default:
             std::cerr << "Error: AIxeleratorService inference mode: " << inference_mode_ << std::endl;

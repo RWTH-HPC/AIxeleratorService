@@ -11,69 +11,78 @@ RoundRobinDistribution::RoundRobinDistribution(std::vector<int64_t> input_shape,
     work_group_comm_ = MPI_COMM_WORLD;
     createWorkgroups();
 
-    int input_sendcount = std::accumulate(input_shape.begin(), input_shape.end(), 1, std::multiplies<int>());
-    int output_sendcount = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
-
-    setInputData(input_sendcount, input_data);
-    setOutputData(output_sendcount, output_data);
-
-    // determine number of samples over all processes
-    int batch_dim = input_shape[0];
-    int total_batch_dim = 0;
-    MPI_Reduce(&batch_dim, &total_batch_dim, 1, MPI_INT, MPI_SUM, 0, work_group_comm_);
-    input_shape_controller_ = input_shape;
-    input_shape_controller_[0] = total_batch_dim;
-    output_shape_controller_ = output_shape;
-    output_shape_controller_[0] = total_batch_dim;
-
-    if(isGPUController())
+    if ( num_devices_total_ > 0)
     {
-        input_recvcounts_.resize(workgroup_size_, -1);
-        input_displs_.resize(workgroup_size_, -1);
+        int input_sendcount = std::accumulate(input_shape.begin(), input_shape.end(), 1, std::multiplies<int>());
+        int output_sendcount = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
 
-        output_recvcounts_.resize(workgroup_size_, -1);
-        output_displs_.resize(workgroup_size_, -1);
-    }
-    else
-    {
-        input_recvcounts_.resize(0);
-        input_displs_.resize(0);
+        setInputData(input_sendcount, input_data);
+        setOutputData(output_sendcount, output_data);
 
-        output_recvcounts_.resize(0);
-        output_displs_.resize(0);
-    }
-    
-    MPI_Gather(&input_sendcount_, 1, MPI_INT, input_recvcounts_.data(), 1, MPI_INT, 0, work_group_comm_);
-    MPI_Gather(&output_sendcount_, 1, MPI_INT, output_recvcounts_.data(), 1, MPI_INT, 0, work_group_comm_);
-    
-    if(isGPUController())
-    {
-        input_displs_[0] = 0;
-        output_displs_[0] = 0;
-        for(int i = 1; i < workgroup_size_; i++)
+        // determine number of samples over all processes
+        int batch_dim = input_shape[0];
+        int total_batch_dim = 0;
+        MPI_Reduce(&batch_dim, &total_batch_dim, 1, MPI_INT, MPI_SUM, 0, work_group_comm_);
+        input_shape_controller_ = input_shape;
+        input_shape_controller_[0] = total_batch_dim;
+        output_shape_controller_ = output_shape;
+        output_shape_controller_[0] = total_batch_dim;
+
+        if(isGPUController())
         {
-            input_displs_[i] = input_displs_[i-1] + input_recvcounts_[i-1];
-            output_displs_[i] = output_displs_[i-1] + output_recvcounts_[i-1];
-        }  
+            input_recvcounts_.resize(workgroup_size_, -1);
+            input_displs_.resize(workgroup_size_, -1);
 
-        total_input_count_ = std::accumulate(input_recvcounts_.begin(), input_recvcounts_.end(), 0);
-        total_output_count_ = std::accumulate(output_recvcounts_.begin(), output_recvcounts_.end(), 0);
-
-        input_data_controller_ = new double[total_input_count_];
-        /*
-        for(int i = 0; i < total_input_count_; i++)
-        {
-            input_data_controller_[i] = 0.0;
+            output_recvcounts_.resize(workgroup_size_, -1);
+            output_displs_.resize(workgroup_size_, -1);
         }
-        */
-
-        output_data_controller_ = new double[total_output_count_];
-        /*
-        for(int i = 0; i < total_output_count_; i++)
+        else
         {
-            output_data_controller_[i] = 0.0;
+            input_recvcounts_.resize(0);
+            input_displs_.resize(0);
+
+            output_recvcounts_.resize(0);
+            output_displs_.resize(0);
         }
-        */
+        
+        MPI_Gather(&input_sendcount_, 1, MPI_INT, input_recvcounts_.data(), 1, MPI_INT, 0, work_group_comm_);
+        MPI_Gather(&output_sendcount_, 1, MPI_INT, output_recvcounts_.data(), 1, MPI_INT, 0, work_group_comm_);
+        
+        if(isGPUController())
+        {
+            input_displs_[0] = 0;
+            output_displs_[0] = 0;
+            for(int i = 1; i < workgroup_size_; i++)
+            {
+                input_displs_[i] = input_displs_[i-1] + input_recvcounts_[i-1];
+                output_displs_[i] = output_displs_[i-1] + output_recvcounts_[i-1];
+            }  
+
+            total_input_count_ = std::accumulate(input_recvcounts_.begin(), input_recvcounts_.end(), 0);
+            total_output_count_ = std::accumulate(output_recvcounts_.begin(), output_recvcounts_.end(), 0);
+
+            input_data_controller_ = new double[total_input_count_];
+            /*
+            for(int i = 0; i < total_input_count_; i++)
+            {
+                input_data_controller_[i] = 0.0;
+            }
+            */
+
+            output_data_controller_ = new double[total_output_count_];
+            /*
+            for(int i = 0; i < total_output_count_; i++)
+            {
+                output_data_controller_[i] = 0.0;
+            }
+            */
+        }
+
+    }
+    else 
+    {
+        input_data_controller_ = nullptr;
+        output_data_controller_ = nullptr;
     }
 
 
@@ -130,30 +139,38 @@ void RoundRobinDistribution::createWorkgroups()
     MPI_Allreduce(&my_num_devices, &num_devices_total_, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
     std::cout << "Rank " << my_rank << "/" << num_procs << " knows that there is a total of " << num_devices_total_ << " GPUs across all systems" << std::endl;
 
-    // combine controllers (and workers) into separate communicators, to enumerate them
-    MPI_Comm work_type_comm;
-    MPI_Comm_split(MPI_COMM_WORLD, my_num_devices, my_rank, &work_type_comm);
-    int work_type_rank, work_type_size;
-    MPI_Comm_rank(work_type_comm, &work_type_rank);
-    MPI_Comm_size(work_type_comm, &work_type_size);
-    MPI_Comm_free(&work_type_comm);
-
-    // round robin assignment of data to a gpu, making sure the gpu master is rank 0
-    int color = work_type_rank % num_devices_total_;
-    int order = is_gpu_controller_ ? 0 : my_rank + num_devices_total_;
-    std::cout << "Rank " << my_rank << "/" << num_procs << " will be in group " << color << " order " << order << std::endl;
-
-    // initialize the work group communicator
-    err = MPI_Comm_split(MPI_COMM_WORLD, color, order, &work_group_comm_);
-    if ( err != MPI_SUCCESS )
+    if ( num_devices_total_ > 0)
     {
-        std::cout << "Rank " << my_rank << ": Error when splitting workgroup communicator " << work_group_comm_  << std::endl;
+        // combine controllers (and workers) into separate communicators, to enumerate them
+        MPI_Comm work_type_comm;
+        MPI_Comm_split(MPI_COMM_WORLD, my_num_devices, my_rank, &work_type_comm);
+        int work_type_rank, work_type_size;
+        MPI_Comm_rank(work_type_comm, &work_type_rank);
+        MPI_Comm_size(work_type_comm, &work_type_size);
+        MPI_Comm_free(&work_type_comm);
+
+        // round robin assignment of data to a gpu, making sure the gpu master is rank 0
+        int color = work_type_rank % num_devices_total_;
+        int order = is_gpu_controller_ ? 0 : my_rank + num_devices_total_;
+        std::cout << "Rank " << my_rank << "/" << num_procs << " will be in group " << color << " order " << order << std::endl;
+
+        // initialize the work group communicator
+        err = MPI_Comm_split(MPI_COMM_WORLD, color, order, &work_group_comm_);
+        if ( err != MPI_SUCCESS )
+        {
+            std::cout << "Rank " << my_rank << ": Error when splitting workgroup communicator " << work_group_comm_  << std::endl;
+        }
+        int work_group_rank, work_group_size;
+        MPI_Comm_rank(work_group_comm_, &work_group_rank);
+        MPI_Comm_size(work_group_comm_, &work_group_size);
+        workgroup_size_ = work_group_size;
+        std::cout << "Rank " << my_rank << "/" << num_procs << " got id of " << work_group_rank << "/" << work_group_size << std::endl;
     }
-    int work_group_rank, work_group_size;
-    MPI_Comm_rank(work_group_comm_, &work_group_rank);
-    MPI_Comm_size(work_group_comm_, &work_group_size);
-    workgroup_size_ = work_group_size;
-    std::cout << "Rank " << my_rank << "/" << num_procs << " got id of " << work_group_rank << "/" << work_group_size << std::endl;
+    else
+    {
+        workgroup_size_ = 0;
+        work_group_comm_ = MPI_COMM_WORLD;
+    } 
 }
 
 void RoundRobinDistribution::setInputData(int input_sendcount, double* input_data)
