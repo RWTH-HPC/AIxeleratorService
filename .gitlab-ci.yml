@@ -175,12 +175,3 @@ shared-aixelerator-service-CPU-test-job:
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
   needs: ["shared-aixelerator-service-TF-test-job"]
 
-aixelerator-service-hetjob-test-job:
-  stage: test
-  variables:
-    CI_MODE: "Sbatch"
-    BATCH_SCRIPT: "test/testAixeleratorServiceHetjob.sh"
-  script: 
-    - echo "Script is not executed for Sbatch jobs?"
-
-
