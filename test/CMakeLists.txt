@@ -83,3 +83,11 @@ target_link_libraries(testAIxeleratorLib.x PRIVATE ${TORCH_LIBRARIES})
 target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
 target_link_libraries(testAIxeleratorLib.x PRIVATE ${TENSORFLOW_LIBRARIES})
 target_link_libraries(testAIxeleratorLib.x PRIVATE AIxeleratorServiceLib)
+
+
+message(STATUS "Creating TorchInference C Interface Test")
+add_executable(testTorchInference_interfaceC.x testTorchInferenceFromC.c)
+target_sources(testTorchInference_interfaceC.x PRIVATE testTorchInferenceFromC.c ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceC.cpp)
+target_include_directories(testTorchInference_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(testTorchInference_interfaceC.x PRIVATE ${TORCH_INCLUDE_DIRS})
+target_link_libraries(testTorchInference_interfaceC.x PRIVATE ${TORCH_LIBRARIES})

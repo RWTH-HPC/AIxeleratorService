@@ -74,7 +74,4 @@ void TorchInference::inference()
             output_.slice(0, batchsize_*i, batchsize_*(i+1)) = output_batch_.to(torch::kCPU);
         }   
     }
-    
-    
-
 }
