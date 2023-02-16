@@ -87,15 +87,62 @@ target_link_libraries(testAIxeleratorLib.x PRIVATE AIxeleratorServiceLib)
 
 message(STATUS "Creating TorchInference C Interface Test")
 add_executable(testTorchInference_interfaceC.x testTorchInferenceFromC.c)
-target_sources(testTorchInference_interfaceC.x PRIVATE testTorchInferenceFromC.c ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceC.cpp)
+target_sources(
+    testTorchInference_interfaceC.x 
+    PRIVATE 
+    testTorchInferenceFromC.c 
+    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp 
+    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceC.cpp
+)
 target_include_directories(testTorchInference_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(testTorchInference_interfaceC.x PRIVATE ${TORCH_INCLUDE_DIRS})
 target_link_libraries(testTorchInference_interfaceC.x PRIVATE ${TORCH_LIBRARIES})
 
 message(STATUS "Creating TorchInference Fortran Interface Test")
 add_executable(testTorchInference_interfaceF.x testTorchInferenceFromF.f90)
-target_sources(testTorchInference_interfaceF.x PRIVATE testTorchInferenceFromF.f90 ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceC.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceF.f90)
+target_sources(
+    testTorchInference_interfaceF.x 
+    PRIVATE 
+    testTorchInferenceFromF.f90 
+    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp 
+    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceC.cpp 
+    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceF.f90
+)
 target_include_directories(testTorchInference_interfaceF.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(testTorchInference_interfaceF.x PRIVATE ${TORCH_INCLUDE_DIRS})
 target_link_libraries(testTorchInference_interfaceF.x PRIVATE ${TORCH_LIBRARIES})
 set_target_properties(testTorchInference_interfaceF.x PROPERTIES LINKER_LANGUAGE Fortran)
+
+message(STATUS "Creating AIxeleratorService C Interface Test")
+add_executable(testAIxeleratorService_interfaceC.x testAIxeleratorServiceFromC.c)
+target_sources(
+    testAIxeleratorService_interfaceC.x 
+    PRIVATE 
+    testAIxeleratorServiceFromC.c 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService.cpp 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService_interfaceC.cpp 
+    ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp 
+    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp 
+    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference.cpp
+)
+target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE ${TORCH_INCLUDE_DIRS} ${MPI_INCLUDE_PATH} ${TENSORFLOW_INCLUDE_DIRS})
+target_link_libraries(testAIxeleratorService_interfaceC.x PRIVATE ${TORCH_LIBRARIES} ${MPI_LIBRARIES} ${TENSORFLOW_LIBRARIES})
+
+message(STATUS "Creating AIxeleratorService Fortran Interface Test")
+add_executable(testAIxeleratorService_interfaceF.x testAIxeleratorServiceFromF.f90)
+target_sources(
+    testAIxeleratorService_interfaceF.x 
+    PRIVATE 
+    testAIxeleratorServiceFromF.f90 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService.cpp 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService_interfaceC.cpp 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService_interfaceF.f90 
+    ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp 
+    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp 
+    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference.cpp
+)
+target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE ${TORCH_INCLUDE_DIRS} ${MPI_INCLUDE_PATH} ${TENSORFLOW_INCLUDE_DIRS})
+target_link_libraries(testAIxeleratorService_interfaceF.x PRIVATE ${TORCH_LIBRARIES} ${MPI_LIBRARIES} ${TENSORFLOW_LIBRARIES} MPI::MPI_Fortran)
+set_target_properties(testAIxeleratorService_interfaceF.x PROPERTIES LINKER_LANGUAGE Fortran)

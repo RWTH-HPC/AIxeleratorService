@@ -213,3 +213,40 @@ shared-torch-inference-F-interface-test-job:
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
   needs: ["shared-torch-inference-C-interface-test-job"]
 
+shared-aixelerator-service-C-interface-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ./BUILD
+    - ./test/testAIxeleratorService_interfaceC.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 1"
+    SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-torch-inference-F-interface-test-job"]
+
+shared-aixelerator-service-F-interface-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ./BUILD
+    - ./test/testAIxeleratorService_interfaceF.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 1"
+    SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-aixelerator-service-C-interface-test-job"]
