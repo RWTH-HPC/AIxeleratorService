@@ -91,3 +91,11 @@ target_sources(testTorchInference_interfaceC.x PRIVATE testTorchInferenceFromC.c
 target_include_directories(testTorchInference_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(testTorchInference_interfaceC.x PRIVATE ${TORCH_INCLUDE_DIRS})
 target_link_libraries(testTorchInference_interfaceC.x PRIVATE ${TORCH_LIBRARIES})
+
+message(STATUS "Creating TorchInference Fortran Interface Test")
+add_executable(testTorchInference_interfaceF.x testTorchInferenceFromF.f90)
+target_sources(testTorchInference_interfaceF.x PRIVATE testTorchInferenceFromF.f90 ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceC.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceF.f90)
+target_include_directories(testTorchInference_interfaceF.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(testTorchInference_interfaceF.x PRIVATE ${TORCH_INCLUDE_DIRS})
+target_link_libraries(testTorchInference_interfaceF.x PRIVATE ${TORCH_LIBRARIES})
+set_target_properties(testTorchInference_interfaceF.x PROPERTIES LINKER_LANGUAGE Fortran)

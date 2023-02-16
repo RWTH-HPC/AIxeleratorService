@@ -51,7 +51,7 @@ shared-build-job:
     - rm -rf BUILD
     - mkdir BUILD
     - cd BUILD
-    - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 ..
+    - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 -DWITH_TORCH=ON -DWITCH_TENSORFLOW=ON  ..
     - cmake --build . -j 8
     - echo ${PWD}
   variables:
@@ -193,4 +193,23 @@ shared-torch-inference-C-interface-test-job:
     #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
   needs: ["shared-aixelerator-service-CPU-test-job"]
+
+shared-torch-inference-F-interface-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ./BUILD
+    - ./test/testTorchInference_interfaceF.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 1"
+    SLURM_PARAM_GPUS: "--gres=gpu:volta:1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-torch-inference-C-interface-test-job"]
 
