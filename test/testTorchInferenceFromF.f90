@@ -7,12 +7,12 @@ use iso_c_binding, only: C_ptr
     type(C_ptr) :: torch_obj
 
     integer(kind=4) :: num_input_dims
-    integer(kind=8), dimension(2) :: input_shape = (/4, 2/)
-    real(kind=8), dimension(8) :: input_data = (/0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0/)
+    integer(kind=8), dimension(2) :: input_shape
+    real(kind=8), dimension(8) :: input_data
 
     integer(kind=4) :: num_output_dims
-    integer(kind=8), dimension(2) :: output_shape = (/4, 2/)
-    real(kind=8), dimension(8) :: output_data = (/-13.37, -13.37, -13.37, -13.37, -13.37, -13.37, -13.37, -13.37/)
+    integer(kind=8), dimension(2) :: output_shape
+    real(kind=8), dimension(8) :: output_data
 
     integer(kind=4) :: batchsize
     integer(kind=4) :: device_id
@@ -27,17 +27,16 @@ use iso_c_binding, only: C_ptr
 
     
 
-    ! convert Fortran string into C string
     model_file = "../models/torchModels/flexMLP-2x100x100x2.pt"
-    write(*,*) "Modelfile = ", trim(model_file)
-    do i = 1, len(model_file)
-        model_file_c(i) = model_file(i:i)
-    end do
-    model_file_c(len(model_file)+1) = C_null_char
-    write(*,*) "Modelfile_C = ", model_file_c
 
     num_input_dims = 2
+    input_shape = (/4, 2/)
+    input_data = (/0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0/)
+
     num_output_dims = 2
+    output_shape = (/4, 2/)
+    output_data = (/-13.37, -13.37, -13.37, -13.37, -13.37, -13.37, -13.37, -13.37/)
+    
     batchsize = 3
     device_id = 0
 
@@ -45,7 +44,7 @@ use iso_c_binding, only: C_ptr
     torch_obj = C_createTorchInference()
 
     write(*,*) "Init Torch Inference object in Fortran now!"
-    call C_initTorchInference(torch_obj, batchsize, device_id, model_file_c, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data)
+    call C_initTorchInference(torch_obj, batchsize, device_id, model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data)
 
     write(*,*) "Torch Inference Test inference in Fortran now!"
     call C_forwardTorchInference(torch_obj)
