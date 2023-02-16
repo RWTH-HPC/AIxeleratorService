@@ -38,6 +38,9 @@ int main(int argc, char *argv[])
     torchInfer.inference();
 
     std::cout << "(" << input_data[0] << ", " << input_data[1] << ") --> (" << output_data[0] << ", " << output_data[1] << ")" << std::endl;
+    std::cout << "(" << input_data[2] << ", " << input_data[3] << ") --> (" << output_data[2] << ", " << output_data[3] << ")" << std::endl;
+    std::cout << "(" << input_data[4] << ", " << input_data[5] << ") --> (" << output_data[4] << ", " << output_data[5] << ")" << std::endl;
+    std::cout << "(" << input_data[6] << ", " << input_data[7] << ") --> (" << output_data[6] << ", " << output_data[7] << ")" << std::endl;
 
     std::cout << "Torch Inference Test deallocating memory!" << std::endl;
 
