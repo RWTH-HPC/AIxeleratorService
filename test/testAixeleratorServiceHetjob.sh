@@ -18,9 +18,10 @@ module load intel
 module load cuda/11.4
 module load cudnn/8.3.2
 
-cd /home/rwth0792/aixeleratorservice
-cd BUILD-TEST
 
-AIX_EXE=/home/rwth0792/aixeleratorservice/BUILD-TEST/test/testAIxeleratorService.cpp.x
+cd /home/rwth0792/aixeleratorservice
+cd BUILD
+
+AIX_EXE=/home/rwth0792/aixeleratorservice/BUILD/test/testAIxeleratorService.cpp.x
 
 srun ${AIX_EXE} : ./test/module-wrapper.sh ${AIX_EXE}

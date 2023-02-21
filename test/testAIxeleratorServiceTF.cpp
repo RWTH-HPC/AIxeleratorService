@@ -30,17 +30,11 @@ int main(int argc, char *argv[])
         batchsize
     );
     
-    //aixelerator.registerModel(model_file);
-
-    //aixelerator.registerTensors(input_shape, input.data(), output_shape, output.data());
-
     std::cout << "MPI Rank " << my_rank << ": calling inference!" << std::endl;
 
-    //aixelerator.setBatchsize(batchsize);
     aixelerator.inference();
 
     std::cout << "MPI Rank " << my_rank << ": received output from AIxeleratorService = (" << output[0] << ", " << output[1] << ")" << std::endl;
-
 
     MPI_Finalize();
     return 0;

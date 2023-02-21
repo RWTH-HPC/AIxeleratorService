@@ -1,45 +1,57 @@
-list(APPEND TORCH_TESTS "testTorchInference.cpp")
-
-foreach(TEST ${TORCH_TESTS})
-    message(STATUS "Creating Torch test ${TEST}")
-    get_filename_component(UNITTEST_NAME ${TEST} NAME)
-    get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
-    add_executable(${UNITTEST_NAME}.x ${TEST})
-    target_sources(${UNITTEST_NAME}.x PRIVATE testTorchInference.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp)
-    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
-    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
-    target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TORCH_LIBRARIES})
-endforeach(TEST)
-
-
-list(APPEND TENSORFLOW_TESTS "testTensorflowInference.cpp")
-
-foreach(TEST ${TENSORFLOW_TESTS})
-    message(STATUS "Creating Tensorflow test ${TEST}")
-    message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
-    get_filename_component(UNITTEST_NAME ${TEST} NAME)
-    get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
-    add_executable(${UNITTEST_NAME}.x ${TEST})
-    target_sources(${UNITTEST_NAME}.x PRIVATE testTensorflowInference.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference.cpp)
-    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
-    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
-    target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
-endforeach(TEST)
+if(WITH_TORCH)
+    list(APPEND TORCH_TESTS "testTorchInference.cpp")
+    foreach(TEST ${TORCH_TESTS})
+        message(STATUS "Creating Torch test ${TEST}")
+        get_filename_component(UNITTEST_NAME ${TEST} NAME)
+        get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
+        add_executable(${UNITTEST_NAME}.x ${TEST})
+        target_sources(
+            ${UNITTEST_NAME}.x 
+            PRIVATE testTorchInference.cpp 
+            ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp
+        )
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TORCH_LIBRARIES})
+    endforeach(TEST)
+endif()
 
 
-list(APPEND TENSORFLOW_REPRODUCER "tensorflowReproducer.cpp")
+if(WITH_TENSORFLOW)
+    list(APPEND TENSORFLOW_TESTS "testTensorflowInference.cpp")
+    foreach(TEST ${TENSORFLOW_TESTS})
+        message(STATUS "Creating Tensorflow test ${TEST}")
+        message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
+        get_filename_component(UNITTEST_NAME ${TEST} NAME)
+        get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
+        add_executable(${UNITTEST_NAME}.x ${TEST})
+        target_sources(
+            ${UNITTEST_NAME}.x 
+            PRIVATE 
+            testTensorflowInference.cpp 
+            ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInference.cpp
+        )
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
+    endforeach(TEST)
+endif()
 
-foreach(TEST ${TENSORFLOW_REPRODUCER})
-    message(STATUS "Creating Tensorflow test ${TEST}")
-    message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
-    get_filename_component(UNITTEST_NAME ${TEST} NAME)
-    get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
-    add_executable(${UNITTEST_NAME}.x ${TEST})
-    target_sources(${UNITTEST_NAME}.x PRIVATE tensorflowReproducer.cpp)
-    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
-    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
-    target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
-endforeach(TEST)
+
+if(WITH_TENSORFLOW)
+    list(APPEND TENSORFLOW_REPRODUCER "tensorflowReproducer.cpp")
+    foreach(TEST ${TENSORFLOW_REPRODUCER})
+        message(STATUS "Creating Tensorflow test ${TEST}")
+        message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
+        get_filename_component(UNITTEST_NAME ${TEST} NAME)
+        get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
+        add_executable(${UNITTEST_NAME}.x ${TEST})
+        target_sources(${UNITTEST_NAME}.x PRIVATE tensorflowReproducer.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
+    endforeach(TEST)
+endif()
 
 
 list(APPEND DISTRIBUTION_TESTS "testRoundRobinDistribution.cpp")
@@ -48,11 +60,17 @@ foreach(TEST ${DISTRIBUTION_TESTS})
     get_filename_component(UNITTEST_NAME ${TEST} NAME)
     get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
     add_executable(${UNITTEST_NAME}.x ${TEST})
-    target_sources(${UNITTEST_NAME}.x PRIVATE testRoundRobinDistribution.cpp ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp)
+    target_sources(
+        ${UNITTEST_NAME}.x
+        PRIVATE 
+        testRoundRobinDistribution.cpp 
+        ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp
+    )
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
     target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${MPI_LIBRARIES})
 endforeach(TEST)
+
 
 list(APPEND AIXELERATOR_TESTS "testAIxeleratorService.cpp" "testAIxeleratorServiceTF.cpp")
 foreach(TEST ${AIXELERATOR_TESTS})
@@ -60,16 +78,27 @@ foreach(TEST ${AIXELERATOR_TESTS})
     get_filename_component(UNITTEST_NAME ${TEST} NAME)
     get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
     add_executable(${UNITTEST_NAME}.x ${TEST})
-    target_sources(${UNITTEST_NAME}.x PRIVATE ${TEST} ${CMAKE_SOURCE_DIR}/src/aixeleratorService.cpp ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference.cpp)
+    target_sources(
+        ${UNITTEST_NAME}.x 
+        PRIVATE 
+        ${TEST} 
+        ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService.cpp 
+        ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp   
+    )
+    if(WITH_TORCH)
+        target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TORCH_LIBRARIES})
+    endif()
+    if(WITH_TENSORFLOW)
+        target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInference.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
+    endif()
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
     target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${MPI_LIBRARIES})
-    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
-    target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TORCH_LIBRARIES})
-    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
-    target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
 endforeach(TEST)
-
 
 
 message(STATUS "Creating AIxelerator LIB test")
@@ -78,40 +107,50 @@ target_sources(testAIxeleratorLib.x PRIVATE testAIxeleratorService.cpp)
 target_include_directories(testAIxeleratorLib.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
 target_link_libraries(testAIxeleratorLib.x PRIVATE ${MPI_LIBRARIES})
-target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
-target_link_libraries(testAIxeleratorLib.x PRIVATE ${TORCH_LIBRARIES})
-target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
-target_link_libraries(testAIxeleratorLib.x PRIVATE ${TENSORFLOW_LIBRARIES})
+if(WITH_TORCH)
+    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
+    target_link_libraries(testAIxeleratorLib.x PRIVATE ${TORCH_LIBRARIES})
+endif()
+if(WITH_TENSORFLOW)
+    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+    target_link_libraries(testAIxeleratorLib.x PRIVATE ${TENSORFLOW_LIBRARIES})
+endif()
 target_link_libraries(testAIxeleratorLib.x PRIVATE AIxeleratorServiceLib)
 
 
-message(STATUS "Creating TorchInference C Interface Test")
-add_executable(testTorchInference_interfaceC.x testTorchInferenceFromC.c)
-target_sources(
-    testTorchInference_interfaceC.x 
-    PRIVATE 
-    testTorchInferenceFromC.c 
-    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp 
-    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceC.cpp
-)
-target_include_directories(testTorchInference_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_include_directories(testTorchInference_interfaceC.x PRIVATE ${TORCH_INCLUDE_DIRS})
-target_link_libraries(testTorchInference_interfaceC.x PRIVATE ${TORCH_LIBRARIES})
+if(WITH_TORCH)
+    message(STATUS "Creating TorchInference C Interface Test")
+    add_executable(testTorchInference_interfaceC.x testTorchInferenceFromC.c)
+    target_sources(
+        testTorchInference_interfaceC.x 
+        PRIVATE 
+        testTorchInferenceFromC.c 
+        ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp 
+        ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference_interfaceC.cpp
+    )
+    target_include_directories(testTorchInference_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+    target_include_directories(testTorchInference_interfaceC.x PRIVATE ${TORCH_INCLUDE_DIRS})
+    target_link_libraries(testTorchInference_interfaceC.x PRIVATE ${TORCH_LIBRARIES})
+endif()
 
-message(STATUS "Creating TorchInference Fortran Interface Test")
-add_executable(testTorchInference_interfaceF.x testTorchInferenceFromF.f90)
-target_sources(
-    testTorchInference_interfaceF.x 
-    PRIVATE 
-    testTorchInferenceFromF.f90 
-    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp 
-    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceC.cpp 
-    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference_interfaceF.f90
-)
-target_include_directories(testTorchInference_interfaceF.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_include_directories(testTorchInference_interfaceF.x PRIVATE ${TORCH_INCLUDE_DIRS})
-target_link_libraries(testTorchInference_interfaceF.x PRIVATE ${TORCH_LIBRARIES})
-set_target_properties(testTorchInference_interfaceF.x PROPERTIES LINKER_LANGUAGE Fortran)
+
+if(WITH_TORCH)
+    message(STATUS "Creating TorchInference Fortran Interface Test")
+    add_executable(testTorchInference_interfaceF.x testTorchInferenceFromF.f90)
+    target_sources(
+        testTorchInference_interfaceF.x 
+        PRIVATE 
+        testTorchInferenceFromF.f90 
+        ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp 
+        ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference_interfaceC.cpp 
+        ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference_interfaceF.f90
+    )
+    target_include_directories(testTorchInference_interfaceF.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+    target_include_directories(testTorchInference_interfaceF.x PRIVATE ${TORCH_INCLUDE_DIRS})
+    target_link_libraries(testTorchInference_interfaceF.x PRIVATE ${TORCH_LIBRARIES})
+    set_target_properties(testTorchInference_interfaceF.x PROPERTIES LINKER_LANGUAGE Fortran)
+endif()
+
 
 message(STATUS "Creating AIxeleratorService C Interface Test")
 add_executable(testAIxeleratorService_interfaceC.x testAIxeleratorServiceFromC.c)
@@ -119,15 +158,24 @@ target_sources(
     testAIxeleratorService_interfaceC.x 
     PRIVATE 
     testAIxeleratorServiceFromC.c 
-    ${CMAKE_SOURCE_DIR}/src/aixeleratorService.cpp 
-    ${CMAKE_SOURCE_DIR}/src/aixeleratorService_interfaceC.cpp 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService.cpp 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceC.cpp 
     ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp 
-    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp 
-    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference.cpp
 )
+if(WITH_TORCH)
+    target_sources(testAIxeleratorService_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp )
+    target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE ${TORCH_INCLUDE_DIRS})
+    target_link_libraries(testAIxeleratorService_interfaceC.x PRIVATE ${TORCH_LIBRARIES})
+endif()
+if(WITH_TENSORFLOW)
+    target_sources(testAIxeleratorService_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInference.cpp)
+    target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+    target_link_libraries(testAIxeleratorService_interfaceC.x PRIVATE ${TENSORFLOW_LIBRARIES})
+endif()
 target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE ${TORCH_INCLUDE_DIRS} ${MPI_INCLUDE_PATH} ${TENSORFLOW_INCLUDE_DIRS})
-target_link_libraries(testAIxeleratorService_interfaceC.x PRIVATE ${TORCH_LIBRARIES} ${MPI_LIBRARIES} ${TENSORFLOW_LIBRARIES})
+target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE  ${MPI_INCLUDE_PATH} )
+target_link_libraries(testAIxeleratorService_interfaceC.x PRIVATE  ${MPI_LIBRARIES} )
+
 
 message(STATUS "Creating AIxeleratorService Fortran Interface Test")
 add_executable(testAIxeleratorService_interfaceF.x testAIxeleratorServiceFromF.f90)
@@ -135,14 +183,22 @@ target_sources(
     testAIxeleratorService_interfaceF.x 
     PRIVATE 
     testAIxeleratorServiceFromF.f90 
-    ${CMAKE_SOURCE_DIR}/src/aixeleratorService.cpp 
-    ${CMAKE_SOURCE_DIR}/src/aixeleratorService_interfaceC.cpp 
-    ${CMAKE_SOURCE_DIR}/src/aixeleratorService_interfaceF.f90 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService.cpp 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceC.cpp 
+    ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceF.f90 
     ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp 
-    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference.cpp 
-    ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference.cpp
 )
+if(WITH_TORCH)
+    target_sources(testAIxeleratorService_interfaceF.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp )
+    target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE ${TORCH_INCLUDE_DIRS})
+    target_link_libraries(testAIxeleratorService_interfaceF.x PRIVATE ${TORCH_LIBRARIES})
+endif()
+if(WITH_TENSORFLOW)
+    target_sources(testAIxeleratorService_interfaceF.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInference.cpp)
+    target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+    target_link_libraries(testAIxeleratorService_interfaceF.x PRIVATE ${TENSORFLOW_LIBRARIES} )
+endif()
 target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE ${TORCH_INCLUDE_DIRS} ${MPI_INCLUDE_PATH} ${TENSORFLOW_INCLUDE_DIRS})
-target_link_libraries(testAIxeleratorService_interfaceF.x PRIVATE ${TORCH_LIBRARIES} ${MPI_LIBRARIES} ${TENSORFLOW_LIBRARIES} MPI::MPI_Fortran)
+target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE  ${MPI_INCLUDE_PATH} )
+target_link_libraries(testAIxeleratorService_interfaceF.x PRIVATE  ${MPI_LIBRARIES} MPI::MPI_Fortran)
 set_target_properties(testAIxeleratorService_interfaceF.x PROPERTIES LINKER_LANGUAGE Fortran)

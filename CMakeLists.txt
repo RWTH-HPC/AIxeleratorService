@@ -15,11 +15,13 @@ option(BUILD_SHARED_LIBS "Build shared instead of static libraries" ON)
 option(BUILD_TESTS "Build tests" ON)
 
 # Options for AI-Frameworks
-option(WITH_TORCH "Build with support for Torch backend" ON)
+option(WITH_TORCH "Build with support for Torch backend" OFF)
 option(WITH_TENSORFLOW "Build with support for Tensorflow backend" OFF)
 
 # add error check if no AI framework is activated
-#if()
+if(NOT ${WITH_TORCH} AND NOT ${WITH_TENSORFLOW})
+  message(FATAL_ERROR "You are trying to build the AIxeleratorService without any ML framework backend. At least one of the following options need to be defined: \n -DWITH_TORCH=ON for PyTorch libtorch backend \n -DWITH_TENSORFLOW=ON for TensorFlow backend")
+endif()
 
 find_package(MPI REQUIRED)
 
@@ -30,16 +32,11 @@ if(WITH_TORCH)
   message(STATUS "Torch Libraries defined by FindTorch = ${TORCH_LIBRARIES}")
   set(TORCH_LIBRARIES_TMP "")
   foreach (_lib ${TORCH_LIBRARIES})
-    #message(STATUS "Current TORCH_LIBRARIES_TMP = ${TORCH_LIBRARIES_TMP}")
     string(FIND "${_lib}" "libcuda.so" LIB_CUDA_CONTAINED)
-    #message(STATUS "Current lib = ${_lib}")
     if(LIB_CUDA_CONTAINED EQUAL -1)
-      #message(STATUS "Current lib = ${_lib} is not CUDA")
       if(TORCH_LIBRARIES_TMP STREQUAL "")
-        #message(STATUS "Current lib = ${_lib} equal empty")
         set(TORCH_LIBRARIES_TMP "${_lib}")
       else()
-        #message(STATUS "Current lib = ${_lib} notequal empty")
         set(TORCH_LIBRARIES_TMP "${TORCH_LIBRARIES_TMP};${_lib}")
       endif()
     endif()
@@ -55,16 +52,6 @@ if(WITH_TENSORFLOW)
   set(TENSORFLOW_LIB_DIR ${Tensorflow_DIR}/lib)
   set(TENSORFLOW_LIBRARIES ${TENSORFLOW_LIB_DIR}/libtensorflow.so ${TENSORFLOW_LIB_DIR}/libtensorflow_framework.so)
 endif()
-
-# find OpenFOAM
-#set(OPENFOAM_INCLUDE_DIRS ${OPENFOAM_DIR}/src/OpenFOAM/lnInclude ${OPENFOAM_DIR}/src/finiteVolume/lnInclude)
-
-# uncomment to inspect all variables in CMAKE
-#get_cmake_property(_variableNames VARIABLES)
-#list (SORT _variableNames)
-#foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-#endforeach()
 
 add_subdirectory(src)
 
