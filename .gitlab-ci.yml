@@ -57,7 +57,7 @@ shared-build-job:
   variables:
     #SLURM_PARAM_EXCLUSIVE: "--exclusive"
     #SLURM_PARAM_MEMORY: "--mem=0"
-    SLURM_PARAM_HETJOB: "--account=rwth0792 --time=00:30:00 --exclusive --mem=0 --partition=c18g --gres=gpu:volta:1 : --exclusive --mem=0 --partition=c18m"
+    SLURM_PARAM_HETJOB: "--account=rwth0792 --time=00:30:00 --exclusive --mem=0 --partition=c18g --gres=gpu:volta:1 : --exclusive --mem=0 --partition=c18g --gres:gpu:volta:1"
 
 shared-test-hetjob:
   stage: test
