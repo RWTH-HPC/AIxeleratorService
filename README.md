@@ -18,6 +18,10 @@ This version offers the following features:
 The AIxelerator Service library is mainly written in C++. 
 To support coupling with traditional HPC codes it also offers C and Fortran interface wrappers around its API.
 
+Please note:  
+This library is currently in a prototype state. Development will continue and the library will evolve over time with new features being added.
+If you are missing any feature to couple your application with this library, please feel free to contact us!
+
 ## Installation
 
 ### Dependencies
@@ -54,13 +58,14 @@ The whole project can easily be built using Cmake.
 There are a few important flags to control the build process:
 * `WITH_TORCH=<ON|OFF>` enables/disables Torch backend (default: `OFF`)
 * `WITH_TENSORFLOW=<ON|OFF>` enables/disables TensorFlow backend (default: `OFF`)
+* `Tensorflow_DIR=<path/to/tensorflow>` set TensorFlow install location because there is no `findTensorflow.cmake` yet
 * `BUILD_SHARED_LIBS=<ON|OFF>` build AIxelerator Service as shared or static library (default `ON`)
 * `BUILD_TESTS=<ON|OFF>` build tests (default: `ON`)
 
 So the complete call to Cmake should look like:
 ```
 mkdir BUILD && cd BUILD
-Torch_DIR=<path/to/torch> Tensorflow_DIR=<path/to/tensorflow> cmake -DWITH_TORCH=<ON|OFF> -DWITH_TENSORFLOW=<ON|OFF> -DBUILD_SHARED_LIBS=<ON|OFF> -DBUILD_TESTS=<ON|OFF> ..
+Torch_DIR=<path/to/torch> cmake -DWITH_TORCH=<ON|OFF> -DWITH_TENSORFLOW=<ON|OFF> -DTensorflow_DIR=<path/to/tensorflow> -DBUILD_SHARED_LIBS=<ON|OFF> -DBUILD_TESTS=<ON|OFF> ..
 cmake --build .
 cmake --install .
 ```

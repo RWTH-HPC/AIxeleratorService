@@ -1,4 +1,4 @@
-#include "aixeleratorService.h"
+#include "aixeleratorService/aixeleratorService.h"
 
 #include <mpi.h>
 

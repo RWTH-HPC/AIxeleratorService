@@ -2,8 +2,8 @@
 
 #include "distributionStrategy/roundRobinDistribution.h"
 
-#include "inferenceStrategy/torchInference.h"
-#include "inferenceStrategy/tensorflowInference.h"
+#include "inferenceStrategy/torchInference/torchInference.h"
+#include "inferenceStrategy/tensorflowInference/tensorflowInference.h"
 
 #include <numeric>
 #include <iostream>

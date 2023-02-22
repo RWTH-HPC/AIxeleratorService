@@ -1,4 +1,4 @@
-#include "aixeleratorService_interfaceC.h"
+#include "aixeleratorService/aixeleratorService_interfaceC.h"
 
 #include <mpi.h>
 

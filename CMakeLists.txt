@@ -48,9 +48,13 @@ endif()
 if(WITH_TENSORFLOW)
   # simulate a findTensorflow.cmake
   # Tensorflow_DIR needs to be passed to CMAKE configure
+  message(STATUS "Tensorflow_DIR = ${Tensorflow_DIR}")
   set(TENSORFLOW_INCLUDE_DIRS ${Tensorflow_DIR}/include)
+  message(STATUS "TENSORFLOW_INCLUDE_DIRS = ${TENSORFLOW_INCLUDE_DIRS}")
   set(TENSORFLOW_LIB_DIR ${Tensorflow_DIR}/lib)
+  message(STATUS "TENSORFLOW_LIB_DIR = ${TENSORFLOW_LIB_DIR}")
   set(TENSORFLOW_LIBRARIES ${TENSORFLOW_LIB_DIR}/libtensorflow.so ${TENSORFLOW_LIB_DIR}/libtensorflow_framework.so)
+  message(STATUS "TENSORFLOW_LIBRARIES = ${TENSORFLOW_LIBRARIES}")
 endif()
 
 add_subdirectory(src)

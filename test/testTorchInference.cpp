@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "inferenceStrategy/torchInference.h"
+#include "inferenceStrategy/torchInference/torchInference.h"
 
 int main(int argc, char *argv[])
 {

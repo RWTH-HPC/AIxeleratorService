@@ -1,5 +1,5 @@
-#include "torchInference_interfaceC.h"
-#include "torchInference.h"
+#include "inferenceStrategy/torchInference/torchInference_interfaceC.h"
+#include "inferenceStrategy/torchInference/torchInference.h"
 
 #ifdef __cplusplus
 extern "C" {

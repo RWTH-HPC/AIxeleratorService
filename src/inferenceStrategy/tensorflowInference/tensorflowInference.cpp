@@ -1,4 +1,4 @@
-#include "inferenceStrategy/tensorflowInference.h"
+#include "inferenceStrategy/tensorflowInference/tensorflowInference.h"
 
 #include <iostream>
 #include <numeric>

@@ -1,4 +1,4 @@
-#include "inferenceStrategy/torchInference_interfaceC.h"
+#include "inferenceStrategy/torchInference/torchInference_interfaceC.h"
 
 #include <stdint.h>
 #include <stdio.h>

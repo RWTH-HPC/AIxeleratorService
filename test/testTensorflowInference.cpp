@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "inferenceStrategy/tensorflowInference.h"
+#include "inferenceStrategy/tensorflowInference/tensorflowInference.h"
 
 int main(int argc, char *argv[])
 {

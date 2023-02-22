@@ -1,4 +1,4 @@
-#include "inferenceStrategy/torchInference.h"
+#include "inferenceStrategy/torchInference/torchInference.h"
 
 #include <vector>
 #include <memory>

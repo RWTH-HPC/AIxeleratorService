@@ -1,5 +1,5 @@
-#include "aixeleratorService_interfaceC.h"
-#include "aixeleratorService.h"
+#include "aixeleratorService/aixeleratorService_interfaceC.h"
+#include "aixeleratorService/aixeleratorService.h"
 
 
 #ifdef __cplusplus
