@@ -17,9 +17,9 @@ use mpi
 
     integer(kind=4) :: batchsize
 
-    character(len=44) :: model_file
+    character(len=45) :: model_file
     character(kind=c_char), dimension(45) :: model_file_c
-    character(len=49) :: model_file_tf
+    character(len=50) :: model_file_tf
 
     character(len=4) :: tensor_val_fmt
     character(len=99) :: tensor_format
@@ -34,8 +34,8 @@ use mpi
 
     write(*,*) "Test AIxeleratorService from Fortran starting!"
 
-    model_file      = "../models/torchModels/flexMLP-2x100x100x2.pt"
-    model_file_tf   = "../models/tensorflowModels/flexMLP-2x100x100x2.tf"
+    model_file      = "../models/torchModels/flexMLP-2x100x100x2.pt" // c_null_char
+    model_file_tf   = "../models/tensorflowModels/flexMLP-2x100x100x2.tf" // c_null_char
 
     num_input_dims = 2
     input_shape = (/1, 2/)
