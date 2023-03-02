@@ -1,0 +1,49 @@
+#include <veda_device.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "libFlexMLP.h" // the generated header file
+
+#define CHECK(err) check(err, __FILE__, __LINE__)
+
+void check(VEDAresult err, const char* file, const int line) {
+	if(err != VEDA_SUCCESS) {
+		const char* name = 0;
+		vedaGetErrorName(err, &name);
+		printf("Error: %i %s @ %s (%i)\n", err, name, file, line);
+		assert(false);
+		exit(1);
+	}
+}
+
+// VEDA 0.10.2
+extern "C" void predict(VEDAdeviceptr input_, VEDAdeviceptr output_) {
+
+     const double* input = VEDAptr<double>(input_).ptr();
+     const double* rawInput;
+     vedaMemPtr(&rawInput, input_);
+
+     double* output = VEDAptr<double>(output_).ptr();
+     double* rawOutput;
+     vedaMemPtr(&rawOutput, output_);
+
+//     printf("input_: \t%p \n input: \t%p \n rawInput: \t%p \n", input_, input, rawInput);
+//     printf("output_: \t%p \n output: \t%p \n rawOutput: \t%p \n", output_, output, rawOutput);
+
+     forward(0, rawInput, rawOutput);
+}
+
+// VEDA 0.9.5.1
+/*
+extern "C" void predict(VEDAdeviceptr input_, VEDAdeviceptr output_) {
+
+     double* input;
+     CHECK(vedaMemPtr<double>(&input, input_));
+
+     double* output;
+     CHECK(vedaMemPtr<double>(&output, output_));
+
+     forward(0, input, output);
+
+}
+*/

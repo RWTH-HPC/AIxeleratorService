@@ -9,7 +9,7 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
-set(CMAKE_BUILD_TYPE ReleaseWithDebInfo)
+set(CMAKE_BUILD_TYPE Debug)
 
 option(BUILD_SHARED_LIBS "Build shared instead of static libraries" ON)
 option(BUILD_TESTS "Build tests" ON)
@@ -17,15 +17,17 @@ option(BUILD_TESTS "Build tests" ON)
 # Options for AI-Frameworks
 option(WITH_TORCH "Build with support for Torch backend" OFF)
 option(WITH_TENSORFLOW "Build with support for Tensorflow backend" OFF)
+option(WITH_SOL "Build with support for NEC SOL backend" OFF)
 
 # add error check if no AI framework is activated
-if(NOT ${WITH_TORCH} AND NOT ${WITH_TENSORFLOW})
+if((NOT ${WITH_TORCH} AND NOT ${WITH_TENSORFLOW}) AND NOT ${WITH_SOL})
   message(FATAL_ERROR "You are trying to build the AIxeleratorService without any ML framework backend. At least one of the following options need to be defined: \n -DWITH_TORCH=ON for PyTorch libtorch backend \n -DWITH_TENSORFLOW=ON for TensorFlow backend")
 endif()
 
 find_package(MPI REQUIRED)
 
 if(WITH_TORCH)
+  add_compile_options("-DWITH_TORCH")
   find_package(Torch REQUIRED)
 
   # remove libcuda from TORCH_LIBRARIES
@@ -46,6 +48,7 @@ if(WITH_TORCH)
 endif()
 
 if(WITH_TENSORFLOW)
+  add_compile_options("-DWITH_TENSORFLOW")
   # simulate a findTensorflow.cmake
   # Tensorflow_DIR needs to be passed to CMAKE configure
   message(STATUS "Tensorflow_DIR = ${Tensorflow_DIR}")
@@ -55,6 +58,15 @@ if(WITH_TENSORFLOW)
   message(STATUS "TENSORFLOW_LIB_DIR = ${TENSORFLOW_LIB_DIR}")
   set(TENSORFLOW_LIBRARIES ${TENSORFLOW_LIB_DIR}/libtensorflow.so ${TENSORFLOW_LIB_DIR}/libtensorflow_framework.so)
   message(STATUS "TENSORFLOW_LIBRARIES = ${TENSORFLOW_LIBRARIES}")
+endif()
+
+if(WITH_SOL)
+  add_compile_options("-DWITH_SOL")
+  message(STATUS "VEDA_DIR = ${VEDA_DIR}") 
+  set(VEDA_INCLUDE_DIRS ${VEDA_DIR}/include)
+  message(STATUS "VEDA_INCLUDE_DIRS = ${VEDA_INCLUDE_DIRS}")
+  set(VEDA_LIBRARIES ${VEDA_DIR}/lib64/libveda.so.0)
+  message(STATUS "VEDA_LIBRARIES = ${VEDA_LIBRARIES}")
 endif()
 
 add_subdirectory(src)

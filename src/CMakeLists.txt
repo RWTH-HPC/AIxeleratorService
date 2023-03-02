@@ -32,6 +32,12 @@ if(WITH_TENSORFLOW)
     target_link_libraries(AIxeleratorServiceLib PUBLIC ${TENSORFLOW_LIBRARIES})
 endif()
 
+if(WITH_SOL)
+    target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/solInference/solInference.cpp)
+    target_include_directories(AIxeleratorServiceLib PRIVATE ${VEDA_INCLUDE_DIRS})
+    target_link_libraries(AIxeleratorServiceLib PUBLIC ${VEDA_LIBRARIES})
+endif()
+
 set_target_properties(
     AIxeleratorServiceLib 
     PROPERTIES 

@@ -31,4 +31,4 @@ mkdir BUILD-CI-AIX && cd BUILD-CI-AIX
 
 Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 .. && \
 cmake --build . && \
-CUDA_VISIBLE_DEVICES=1 mpirun ${FLAGS_MPI_BATCH} ./test/testAIxeleratorService.cpp.x
+CUDA_VISIBLE_DEVICES=1 mpirun ${FLAGS_MPI_BATCH} ./test/testAIxeleratorService.cpp.x ../models/torchModels/flexMLP-2x100x100x2.pt

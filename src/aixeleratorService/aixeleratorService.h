@@ -1,11 +1,8 @@
 #ifndef AIXELERATORSERVICE_H_
 #define AIXELERATORSERVICE_H_
 
-#include "distributionStrategy/distributionStrategy.h"
-
-
 #include "inferenceStrategy/inferenceStrategy.h"
-
+#include "distributionStrategy/distributionStrategy.h"
 
 #include <memory>
 
@@ -13,6 +10,7 @@ typedef enum AIFramework
 {
     AIX_TORCH = 1,
     AIX_TENSORFLOW = 2,
+    AIX_SOL = 3, 
     AIX_UNKNOWN
 } AIFramework;
 
@@ -34,7 +32,7 @@ class AIxeleratorService
             int batchsize
         );
 
-        ~AIxeleratorService() = default;
+        ~AIxeleratorService();
 
         void registerModel(std::string model_file);
         void registerTensors(
@@ -57,6 +55,7 @@ class AIxeleratorService
         std::unique_ptr<DistributionStrategy> distributor_;
         std::unique_ptr<InferenceStrategy> inferencing_;
 
+        void createInferenceStrategy();
         void initInferenceStrategy();
 };
 
