@@ -153,7 +153,7 @@ shared-aixelerator-service-TF-test-job:
     #SLURM_PARAM_OVERLAP: "--oversubscribe"
     #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
     #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
-  needs: ["shared-aixelerator-service-test-job"]
+  needs: ["shared-aixelerator-service-Torch-test-job"]
 
 shared-aixelerator-service-CPU-test-job:
   stage: test
