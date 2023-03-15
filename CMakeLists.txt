@@ -26,6 +26,8 @@ endif()
 
 find_package(MPI REQUIRED)
 
+add_compile_options("-D_GLIBCXX_USE_CXX11_ABI=0")
+
 if(WITH_TORCH)
   add_compile_options("-DWITH_TORCH")
   find_package(Torch REQUIRED)
@@ -49,10 +51,12 @@ endif()
 
 if(WITH_TENSORFLOW)
   add_compile_options("-DWITH_TENSORFLOW")
+  # only needed for newer versions of TF (e.g. 2.11 but maybe also lower)
   # simulate a findTensorflow.cmake
   # Tensorflow_DIR needs to be passed to CMAKE configure
   message(STATUS "Tensorflow_DIR = ${Tensorflow_DIR}")
-  set(TENSORFLOW_INCLUDE_DIRS ${Tensorflow_DIR}/include)
+  set(TENSORFLOW_PROTOBUF_INCLUDE ${Tensorflow_Python_DIR}/include/)
+  set(TENSORFLOW_INCLUDE_DIRS ${Tensorflow_DIR}/include ${TENSORFLOW_PROTOBUF_INCLUDE})
   message(STATUS "TENSORFLOW_INCLUDE_DIRS = ${TENSORFLOW_INCLUDE_DIRS}")
   set(TENSORFLOW_LIB_DIR ${Tensorflow_DIR}/lib)
   message(STATUS "TENSORFLOW_LIB_DIR = ${TENSORFLOW_LIB_DIR}")

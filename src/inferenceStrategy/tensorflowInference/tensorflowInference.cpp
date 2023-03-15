@@ -43,15 +43,49 @@ void TensorflowInference::initSession()
     // https://stackoverflow.com/questions/62393258/tensorflow-c-api-selecting-gpu
     // see also: https://github.com/apivovarov/TF_C_API/blob/master/config.cc
     // for a single GPU, the last value seems to indicate the GPU, counting up from 0x30
-    const size_t config_len = 5;
-    uint8_t config[config_len] = {0x32, 0x3, 0x2a, 0x1, 0x30};
-    config[config_len - 1] = 0x30 + device_id_;
-    TF_SetConfig(session_opts_, (void*)config, config_len, status_);
+    // note(fabian): Protobuf generated header: <anaconda_env>/lib/python3.7/site-packages/tensorflow/include/tensorflow/core/protobuf/config.pb.h
+    //const size_t config_len = 5;
+    //uint8_t config[config_len] = {0x32, 0x3, 0x2a, 0x1, 0x30};
+    //config[config_len - 1] = 0x30 + device_id_;
+
+    tensorflow::ConfigProto config;
+    config.set_log_device_placement(true);
+    auto device_count = config.mutable_device_count();
+    if ( device_id_ > -1 )
+    {
+        std::cout << "TensorflowInference device_id > -1" << std::endl;
+        //device_count->insert({"CPU", 0}); // note(fabian): there is a Const op in the model that gets assigned to CPU per default. so if we remove CPU from the device list we get an error.
+        device_count->insert({"GPU", 1});
+
+        tensorflow::GPUOptions* gpu_config = config.mutable_gpu_options();
+        gpu_config->set_allow_growth(1);
+        gpu_config->set_per_process_gpu_memory_fraction(1.0);
+        gpu_config->set_visible_device_list(std::to_string(device_id_));
+    }
+    else
+    {
+        std::cout << "TensorflowInference device_id < 0" << std::endl;
+
+        device_count->insert({"CPU", 1});
+        device_count->insert({"GPU", 0});
+
+        config.set_intra_op_parallelism_threads(1);
+        config.set_inter_op_parallelism_threads(1);
+    }
+    std::string serialized_config;
+    if(!config.SerializeToString(&serialized_config))
+    {
+        std::cout << "ERROR in serializing tensorflow session config" << std::endl;
+    }
+    TF_SetConfig(session_opts_, serialized_config.c_str(), serialized_config.size(), status_);
+    //TF_SetConfig(session_opts_, (void*)config, config_len, status_);
     const char* tags = "serve";  // must include the set of tags used to identify one MetaGraphDef in the SavedModel
     int num_tags = 1;
     graph_ = TF_NewGraph();
     status_ = TF_NewStatus();
     session_ = TF_LoadSessionFromSavedModel(session_opts_, NULL, model_file_name_.data(), &tags, num_tags, graph_, NULL, status_);
+
+    tensorflow::ConfigProto config_proto;
 
     if ( TF_GetCode(status_) )
     {

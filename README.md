@@ -51,6 +51,7 @@ To build with TensorFlow backend first download prebuilt TensorFlow from https:/
 Afterwards your environment should set the variable
 ```
 Tensorflow_DIR=<path/to/tensorflow>
+Tensorflow_Python_DIR=<path/to/tensorflow/python/installation>
 ```
 to the location of the donwloaded distribution of TensorFlow.
 
@@ -59,6 +60,7 @@ There are a few important flags to control the build process:
 * `WITH_TORCH=<ON|OFF>` enables/disables Torch backend (default: `OFF`)
 * `WITH_TENSORFLOW=<ON|OFF>` enables/disables TensorFlow backend (default: `OFF`)
 * `Tensorflow_DIR=<path/to/tensorflow>` set TensorFlow install location because there is no `findTensorflow.cmake` yet
+* `Tensorflow_Python_DIR=<path/to/tensorflow/python/installation>` TensorFlow Python Installation for generated ProtoBuf C++ classes
 * `BUILD_SHARED_LIBS=<ON|OFF>` build AIxelerator Service as shared or static library (default `ON`)
 * `BUILD_TESTS=<ON|OFF>` build tests (default: `ON`)
 

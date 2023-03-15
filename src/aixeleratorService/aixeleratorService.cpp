@@ -49,12 +49,6 @@ AIxeleratorService::AIxeleratorService(
         inference_mode_ = AIX_CPU;
         batchsize_ = std::min<int>(batchsize_, input_shape_[0]); // TODO(fabian): is that the right place to check it?
     }
-
-
-    if( framework_ == AIX_TENSORFLOW && inference_mode_ == AIX_CPU)
-    {
-        std::cerr << "Error: AIxeleratorService does not support pure CPU inference with Tensorflow (yet)." << std::endl;
-    }
     
     initInferenceStrategy();
 }
