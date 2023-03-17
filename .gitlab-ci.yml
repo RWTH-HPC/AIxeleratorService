@@ -49,13 +49,13 @@ shared-build-job:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Building on $(hostname) into $TMP"
     - echo ${PWD}
-    - pip install --user tensorflow==2.6.0
+    - #pip install --user tensorflow==2.6.0
     - pip show tensorflow
     - python3 -c "import tensorflow as tf; print(tf.__version__)"
     - rm -rf BUILD
     - mkdir BUILD
     - cd BUILD
-    - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 -DWITH_TORCH=ON -DWITH_TENSORFLOW=ON ..
+    - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 -DTensorflow_Python_DIR=/rwthfs/rz/cluster/home/serv0003/.local/lib/python3.7/site-packages/tensorflow -DWITH_TORCH=ON -DWITH_TENSORFLOW=ON ..
     - cmake --build . -j 8
     - echo ${PWD}
   variables:
