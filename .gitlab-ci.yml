@@ -49,7 +49,6 @@ shared-build-job:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Building on $(hostname) into $TMP"
     - echo ${PWD}
-    - #pip install --user tensorflow==2.6.0
     - pip show tensorflow
     - python3 -c "import tensorflow as tf; print(tf.__version__)"
     - rm -rf BUILD
