@@ -40,6 +40,7 @@ variables:
     - module load cuda/11.4
     - module load cudnn/8.3.2
     - module load cmake/3.21.1
+    - module load python/3.7.11
 
 shared-build-job:
   stage: build
@@ -48,6 +49,9 @@ shared-build-job:
     - echo "JOBID ${SLURM_JOB_ID}"
     - echo "Building on $(hostname) into $TMP"
     - echo ${PWD}
+    - pip install --user tensorflow==2.6.0
+    - pip show tensorflow
+    - python3 -c "import tensorflow as tf; print(tf.__version__)"
     - rm -rf BUILD
     - mkdir BUILD
     - cd BUILD
