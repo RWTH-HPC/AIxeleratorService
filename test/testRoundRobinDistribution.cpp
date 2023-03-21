@@ -1,4 +1,5 @@
 #include "distributionStrategy/roundRobinDistribution.h"
+#include "communicationStrategy/collectiveCommunication.h"
 
 #include <iostream>
 #include <vector>
@@ -20,7 +21,8 @@ int main(int argc, char *argv[])
     std::vector<int64_t> output_shape = { 1, 2 };
     std::vector<double> output = { -13.37, -13.37 };
 
-    RoundRobinDistribution distributor(input_shape, input.data(), output_shape, output.data());
+    RoundRobinDistribution distributor;
+    CollectiveCommunication communicator(input_shape, input.data(), output_shape, output.data(), distributor.isGPUController(), *(distributor.getWorkGroupCommunicator()));
 
     std::cout << "Worker " << my_rank << " sends input: ";
     for (int j = 0; j < input.size(); j++)
@@ -29,12 +31,12 @@ int main(int argc, char *argv[])
     }
     std::cout << std::endl;    
 
-    distributor.gatherInputData();
+    communicator.gatherInputData();
     
     if(distributor.isGPUController())
     {
-        double* input_data_controller = distributor.getInputDataController();   
-        int total_input_count = distributor.getTotalInputCount();
+        double* input_data_controller = communicator.getInputDataController();   
+        int total_input_count = communicator.getTotalInputCount();
 
         std::cout << "Controller gathered input data: ";
         for (int j = 0; j < total_input_count; j++)
@@ -47,11 +49,11 @@ int main(int argc, char *argv[])
     // in real use case inference will happen here
     if(distributor.isGPUController())
     {
-        double* input_data_controller = distributor.getInputDataController();
-        int total_input_count = distributor.getTotalInputCount();  
+        double* input_data_controller = communicator.getInputDataController();
+        int total_input_count = communicator.getTotalInputCount();  
 
-        double* output_data_controller = distributor.getOutputDataController();   
-        int total_output_count = distributor.getTotalOutputCount(); 
+        double* output_data_controller = communicator.getOutputDataController();   
+        int total_output_count = communicator.getTotalOutputCount(); 
 
         // note: assuming input and output have same size
         std::memcpy(output_data_controller, input_data_controller, total_input_count * sizeof(double));
@@ -59,8 +61,8 @@ int main(int argc, char *argv[])
 
     if(distributor.isGPUController())
     {
-        double* output_data_controller = distributor.getOutputDataController();   
-        int total_output_count = distributor.getTotalOutputCount();
+        double* output_data_controller = communicator.getOutputDataController();   
+        int total_output_count = communicator.getTotalOutputCount();
 
         std::cout << "Controller will scatter output data: ";
         for (int j = 0; j < total_output_count; j++)
@@ -70,7 +72,7 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
     }
 
-    distributor.scatterOutputData();
+    communicator.scatterOutputData();
 
     
     std::cout << "Worker " << my_rank << " recieved output: ";

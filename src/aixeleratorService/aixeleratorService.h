@@ -3,6 +3,7 @@
 
 #include "inferenceStrategy/inferenceStrategy.h"
 #include "distributionStrategy/distributionStrategy.h"
+#include "communicationStrategy/communicationStrategy.h"
 
 #include <memory>
 
@@ -53,9 +54,13 @@ class AIxeleratorService
         InferenceMode inference_mode_;
 
         std::unique_ptr<DistributionStrategy> distributor_;
+        std::unique_ptr<CommunicationStrategy> communicator_;
         std::unique_ptr<InferenceStrategy> inferencing_;
 
-        void createInferenceStrategy();
+        std::unique_ptr<InferenceStrategy> inferencing_host_;
+        std::unique_ptr<InferenceStrategy> inferencing_device_;
+
+        std::unique_ptr<InferenceStrategy> createInferenceStrategy();
         void initInferenceStrategy();
 };
 

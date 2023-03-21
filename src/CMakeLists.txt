@@ -3,12 +3,14 @@ set_target_properties(AIxeleratorServiceLib PROPERTIES OUTPUT_NAME AIxeleratorSe
 target_sources(
     AIxeleratorServiceLib PRIVATE 
         distributionStrategy/roundRobinDistribution.cpp  
+        communicationStrategy/collectiveCommunication.cpp
         aixeleratorService/aixeleratorService.cpp
 )
 
 target_include_directories(
     AIxeleratorServiceLib
     PUBLIC  ${CMAKE_SOURCE_DIR}/src/distributionStrategy
+            ${CMAKE_SOURCE_DIR}/src/communicationStrategy
             ${CMAKE_SOURCE_DIR}/src/inferenceStrategy
             ${CMAKE_SOURCE_DIR}/src/utils
             ${MPI_INCLUDE_PATH}     

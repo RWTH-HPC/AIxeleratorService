@@ -40,13 +40,14 @@ The AIxelerator Service has the following dependencies (tested with version):
 The AIxeleratorService has a modular design that allows to individually decide which ML/DL framework backend for the inference task should be built.
 Note that at least **one** ML framework backend is required. 
 
+### Build with Torch support
 To build with Torch backend first download `LibTorch (C++)` from https://pytorch.org. Afterwards your environment should set the variable
 ```
 Torch_DIR=<path/to/torch>
 ```
 to the location of the downloaded distribution of Torch.
 
-
+### Build with TensorFlow support
 To build with TensorFlow backend first download prebuilt TensorFlow from https://www.tensorflow.org/install/lang_c.
 Afterwards your environment should set the variable
 ```
@@ -54,6 +55,8 @@ Tensorflow_DIR=<path/to/tensorflow>
 Tensorflow_Python_DIR=<path/to/tensorflow/python/installation>
 ```
 to the location of the donwloaded distribution of TensorFlow.
+
+Additionally, we need to generate a header based on the 
 
 The whole project can easily be built using Cmake.
 There are a few important flags to control the build process:
@@ -114,3 +117,6 @@ call inferenceAIxeleratorService_C(aixelerator)
 
 call deleteAIxeleratorService_C(aixelerator)
 ```
+
+
+cmake -DWITH_TORCH=OFF -DWITH_TENSORFLOW=ON -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.11.0 -DTensorflow_Python_DIR=/home/fo014819/anaconda3/envs/CIAO-tensorflow/lib/python3.7/site-packages/tensorflow  ..

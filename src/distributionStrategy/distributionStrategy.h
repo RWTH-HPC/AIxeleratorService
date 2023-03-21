@@ -1,6 +1,8 @@
 #ifndef AIXELERATORSERVICE_DISTRIBUTIONSTRATEGY_H_
 #define AIXELERATORSERVICE_DISTRIBUTIONSTRATEGY_H_
 
+
+#include <mpi.h>
 #include <iostream>
 #include <vector>
 
@@ -10,29 +12,19 @@ class DistributionStrategy
         virtual ~DistributionStrategy() = default;
 
         virtual void createWorkgroups() = 0;
-        virtual void gatherInputData() = 0;
-        virtual void scatterOutputData() = 0;
 
         bool isGPUController(){ return is_gpu_controller_; }
         int getDeviceID(){ return my_gpu_device_; }
         int getNumDevicesTotal(){ return num_devices_total_; }
 
-        double* getInputDataController(){ return input_data_controller_; }
-        double* getOutputDataController(){ return output_data_controller_; }
-    
-        std::vector<int64_t> getInputShapeController(){return input_shape_controller_;}
-        std::vector<int64_t> getOutputShapeController(){return output_shape_controller_;}
+        MPI_Comm* getWorkGroupCommunicator(){return &work_group_comm_;}
 
     protected:
+        MPI_Comm work_group_comm_;
+        int workgroup_size_;
         bool is_gpu_controller_;
         int my_gpu_device_;
         int num_devices_total_;
-
-        double* input_data_controller_;
-        double* output_data_controller_;
-
-        std::vector<int64_t> input_shape_controller_;
-        std::vector<int64_t> output_shape_controller_;
 };
 
 #endif

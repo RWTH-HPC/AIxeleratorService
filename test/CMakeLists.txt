@@ -65,6 +65,7 @@ foreach(TEST ${DISTRIBUTION_TESTS})
         PRIVATE 
         testRoundRobinDistribution.cpp 
         ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp
+        ${CMAKE_SOURCE_DIR}/src/communicationStrategy/collectiveCommunication.cpp
     )
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
@@ -84,6 +85,7 @@ foreach(TEST ${AIXELERATOR_TESTS})
         ${TEST} 
         ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService.cpp 
         ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp   
+        ${CMAKE_SOURCE_DIR}/src/communicationStrategy/collectiveCommunication.cpp 
     )
     if(WITH_TORCH)
         target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp)
@@ -170,6 +172,7 @@ target_sources(
     ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService.cpp 
     ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceC.cpp 
     ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp 
+    ${CMAKE_SOURCE_DIR}/src/communicationStrategy/collectiveCommunication.cpp
 )
 if(WITH_TORCH)
     target_sources(testAIxeleratorService_interfaceC.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp )
@@ -201,6 +204,7 @@ target_sources(
     ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceC.cpp 
     ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceF.f90 
     ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp 
+    ${CMAKE_SOURCE_DIR}/src/communicationStrategy/collectiveCommunication.cpp
 )
 if(WITH_TORCH)
     target_sources(testAIxeleratorService_interfaceF.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp )

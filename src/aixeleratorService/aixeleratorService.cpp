@@ -1,6 +1,7 @@
-#include "aixeleratorService.h"
+#include "aixeleratorService/aixeleratorService.h"
 
 #include "distributionStrategy/roundRobinDistribution.h"
+#include "communicationStrategy/collectiveCommunication.h"
 
 #ifdef WITH_TORCH
 #include "inferenceStrategy/torchInference/torchInference.h"
@@ -37,12 +38,16 @@ AIxeleratorService::AIxeleratorService(
     }
 #endif
 
-    distributor_ = std::make_unique<RoundRobinDistribution>(input_shape, input_data, output_shape, output_data);
+    distributor_ = std::make_unique<RoundRobinDistribution>();
+
+    communicator_ = std::make_unique<CollectiveCommunication>(input_shape, input_data, output_shape, output_data, distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator()) );
 
     int num_devices_total = distributor_->getNumDevicesTotal();
     if (num_devices_total > 0)
     {
         inference_mode_ = AIX_GPU;    
+
+        // inference_mode_ = AIX_HYBRID;
     }
     else
     {
@@ -106,27 +111,28 @@ void AIxeleratorService::registerModel(std::string model_file)
     framework_ = getAIFrameworkFromModel(model_file_name_);
 }
 
-void AIxeleratorService::createInferenceStrategy()
+std::unique_ptr<InferenceStrategy> AIxeleratorService::createInferenceStrategy()
 {
+    std::unique_ptr<InferenceStrategy> strategy;
     switch(framework_)
     {
         case AIX_TORCH:
 #ifdef WITH_TORCH
-            inferencing_ = std::make_unique<TorchInference>();
+            strategy = std::make_unique<TorchInference>();
 #else   
             std::cerr << "Error: AIxeleratorService was not built with Torch backend!" << std::endl;
 #endif
             break;
         case AIX_TENSORFLOW:
 #ifdef WITH_TENSORFLOW
-            inferencing_ = std::make_unique<TensorflowInference>();
+            strategy = std::make_unique<TensorflowInference>();
 #else
             std::cerr << "Error: AIxeleratorService was not built with Tensorflow backend!" << std::endl;
 #endif
             break;
         case AIX_SOL:
 #ifdef WITH_SOL
-            inferencing_ = std::make_unique<SOLInference>();
+            strategy = std::make_unique<SOLInference>();
 #else
             std::cerr << "Error: AIxeleratorService was not built with SOL backend!" << std::endl;
 #endif
@@ -135,24 +141,37 @@ void AIxeleratorService::createInferenceStrategy()
             std::cerr << "Error: AIxeleratorService does not support format of model file: " << model_file_name_ << std::endl;
             break;
     }
+
+    return std::move(strategy);
 }
 
 void AIxeleratorService::initInferenceStrategy()
 {
     switch(inference_mode_)
     {
+        case AIX_HYBRID:
+        {
+            double batch_fraction_device = 0.9;
+            inferencing_host_ = createInferenceStrategy();
+            if(distributor_->isGPUController())
+            {
+                inferencing_device_ = createInferenceStrategy();
+                int device_id = distributor_->getDeviceID();
+            }
+            break;
+        }
         case AIX_GPU:
         {
             if (distributor_->isGPUController())
             {
-                createInferenceStrategy();
+                inferencing_ = createInferenceStrategy();
 
                 int device_id = distributor_->getDeviceID();
-                double* input_data_controller = distributor_->getInputDataController();
-                double* output_data_controller = distributor_->getOutputDataController();
+                double* input_data_controller = communicator_->getInputDataController();
+                double* output_data_controller = communicator_->getOutputDataController();
 
-                std::vector<int64_t> input_shape_controller = distributor_->getInputShapeController();
-                std::vector<int64_t> output_shape_controller = distributor_->getOutputShapeController();
+                std::vector<int64_t> input_shape_controller = communicator_->getInputShapeController();
+                std::vector<int64_t> output_shape_controller = communicator_->getOutputShapeController();
 
                 inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_controller, input_data_controller, output_shape_controller, output_data_controller);
             }
@@ -162,7 +181,7 @@ void AIxeleratorService::initInferenceStrategy()
         {
             int device_id = -1;
 
-            createInferenceStrategy();
+            inferencing_ = createInferenceStrategy();
 
             inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_, input_data_, output_shape_, output_data_);
             break;
@@ -173,10 +192,9 @@ void AIxeleratorService::initInferenceStrategy()
             break;
         }
     }
-
-    
 }
 
+// note(fabian): this function is currently not used
 void AIxeleratorService::registerTensors(
     std::vector<int64_t> input_shape, double* input_data,
     std::vector<int64_t> output_shape, double* output_data
@@ -187,7 +205,7 @@ void AIxeleratorService::registerTensors(
     input_data_ = input_data;
     output_data_ = output_data;
 
-    distributor_ = std::make_unique<RoundRobinDistribution>(input_shape_, input_data, output_shape_, output_data);
+    distributor_ = std::make_unique<RoundRobinDistribution>();
 
     initInferenceStrategy();
 }
@@ -197,14 +215,14 @@ void AIxeleratorService::inference()
     // TODO: add local data copy
     if ( inference_mode_ == AIX_GPU )
     {
-        distributor_->gatherInputData();
+        communicator_->gatherInputData();
 
         if ( distributor_->isGPUController() )
         {
             inferencing_->inference();
         }
 
-        distributor_->scatterOutputData();
+        communicator_->scatterOutputData();
     }
     else if ( inference_mode_ == AIX_CPU )
     {
