@@ -20,15 +20,21 @@ int main(int argc, char *argv[])
     //std::string model_file = "../models/torchModels/flexMLP-2x100x100x2.pt";
     std::string model_file = argv[1];
 
-    std::vector<int64_t> input_shape = { 1, 2 };
-    std::vector<double> input = { (double)my_rank, (double)my_rank };
+    std::vector<int64_t> input_shape = { 2, 2 };
+    std::vector<double> input = { 
+        (double)my_rank, (double)my_rank,
+        (double)my_rank, (double)my_rank 
+    };
 
-    std::vector<int64_t> output_shape = { 1, 2 };
-    std::vector<double> output = { -13.37, -13.37 };
+    std::vector<int64_t> output_shape = { 2, 2 };
+    std::vector<double> output = { 
+        -13.37, -13.37,
+        -13.37, -13.37 
+    };
 
     int batchsize = 1;
 
-    std::cout << "MPI Rank " << my_rank << ": registering input tensor for AIxeleratorService = (" << input[0] << ", " << input[1] << ")" << std::endl;
+    std::cout << "MPI Rank " << my_rank << ": registering input tensor for AIxeleratorService = (" << input[0] << ", " << input[1] << ", " << input[2] << ", " << input[3] << ")" << std::endl;
 
     AIxeleratorService aixelerator(
         model_file, 
@@ -41,7 +47,7 @@ int main(int argc, char *argv[])
 
     aixelerator.inference();
 
-    std::cout << "MPI Rank " << my_rank << ": received output from AIxeleratorService = (" << output[0] << ", " << output[1] << ")" << std::endl;
+    std::cout << "MPI Rank " << my_rank << ": received output from AIxeleratorService = (" << output[0] << ", " << output[1] << ", " << output[2] << ", " << output[3] << ")" << std::endl;
 
     MPI_Finalize();
     return 0;

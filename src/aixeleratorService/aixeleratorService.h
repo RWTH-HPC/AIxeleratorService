@@ -45,10 +45,22 @@ class AIxeleratorService
 
     private:
         std::string model_file_name_;
+
         std::vector<int64_t> input_shape_;
+        std::vector<int64_t> input_shape_host_;
+        std::vector<int64_t> input_shape_device_;
+        
         std::vector<int64_t> output_shape_;
+        std::vector<int64_t> output_shape_host_;
+        std::vector<int64_t> output_shape_device_;
+
         double* input_data_;
+        double* input_data_host_;
+        double* input_data_device_;
+
         double* output_data_;
+        double* output_data_host_;
+        double* output_data_device_;
         int batchsize_; // TODO: remove this
         AIFramework framework_;
         InferenceMode inference_mode_;
