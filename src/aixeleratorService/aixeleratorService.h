@@ -73,7 +73,8 @@ class AIxeleratorService
         std::unique_ptr<InferenceStrategy> inferencing_device_;
 
         std::unique_ptr<InferenceStrategy> createInferenceStrategy();
-        void initInferenceStrategy();
+        std::pair<int64_t, int64_t> findHybridBatchsize();
+        void initInferenceStrategy(std::pair<int64_t, int64_t> best_batchsizes);
 };
 
 #endif

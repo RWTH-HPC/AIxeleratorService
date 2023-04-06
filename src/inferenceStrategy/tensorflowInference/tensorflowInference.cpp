@@ -164,6 +164,10 @@ void TensorflowInference::init(
     std::vector<int64_t>& output_shape, double* output_data
 ){
     batchsize_ = batchsize;
+    if (batchsize_ < 1)
+    {
+        std::cerr << "Error in init TensorFlowInference: batchsize should not be zero or negative!" << std::endl;
+    }
     device_id_ = device_id;
     model_file_name_ = model_file_name;
 

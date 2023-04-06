@@ -18,6 +18,7 @@ class DistributionStrategy
         int getNumDevicesTotal(){ return num_devices_total_; }
 
         MPI_Comm* getWorkGroupCommunicator(){return &work_group_comm_;}
+        int getWorkGroupSize(){return workgroup_size_;}
 
     protected:
         MPI_Comm work_group_comm_;

@@ -62,6 +62,21 @@ def main():
     #input = tf.constant([[1,1]], dtype='float64')
     #print(model2(input, training=None, mask=None))
 
+    tf.debugging.set_log_device_placement(True)
+    physical_devices = tf.config.list_physical_devices()
+    for dev in physical_devices:
+        print(dev)
+
+    logical_devices = tf.config.list_logical_devices()
+    for dev in logical_devices:
+        print(dev)
+
+    config = tf.compat.v1.ConfigProto(device_count={"GPU":1})
+    print(config)
+    ser = config.SerializeToString()
+    hexlist = list(map(hex,ser))
+    print(hexlist)
+
     input = tf.constant([[0,0],[1,1],[2,2],[3,3]], dtype='float64')
     y = m(input)
     print(y)

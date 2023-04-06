@@ -43,3 +43,6 @@ install
 # custom
 BUILD*
 
+# private ML models
+models/private/*
+

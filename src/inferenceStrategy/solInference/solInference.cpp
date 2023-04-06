@@ -58,6 +58,10 @@ void SOLInference::init(
     device_id_ = device_id;
     model_file_name_ = model_file_name;
     batchsize_ = batchsize;
+    if (batchsize_ < 1)
+    {
+        std::cerr << "Error in init SOLInference: batchsize should not be zero or negative!" << std::endl;
+    }
 
     input_ = inputData;
     output_ = outputData;

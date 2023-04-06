@@ -17,20 +17,15 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
-    //std::string model_file = "../models/torchModels/flexMLP-2x100x100x2.pt";
     std::string model_file = argv[1];
 
-    std::vector<int64_t> input_shape = { 2, 2 };
-    std::vector<double> input = { 
-        (double)my_rank, (double)my_rank,
-        (double)my_rank, (double)my_rank 
-    };
+    int n_samples = 10000;
+    std::vector<int64_t> input_shape = { n_samples, 2 };
+    std::vector<double> input(n_samples*2, (double)my_rank);
 
-    std::vector<int64_t> output_shape = { 2, 2 };
-    std::vector<double> output = { 
-        -13.37, -13.37,
-        -13.37, -13.37 
-    };
+    std::vector<int64_t> output_shape = { n_samples, 2 };
+    std::vector<double> output(n_samples*2, -13.37);
+
 
     int batchsize = 1;
 

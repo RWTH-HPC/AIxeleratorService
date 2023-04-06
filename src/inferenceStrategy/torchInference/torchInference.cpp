@@ -33,6 +33,10 @@ void TorchInference::init(
     }
 
     batchsize_ = batchsize;
+    if (batchsize_ < 1)
+    {
+        std::cerr << "Error in init TorchInference: batchsize should not be zero or negative!" << std::endl;
+    }
 
     const torch::TensorOptions options(torch::kFloat64);
     

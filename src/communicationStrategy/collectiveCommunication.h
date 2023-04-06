@@ -23,9 +23,6 @@ class CollectiveCommunication : public CommunicationStrategy
         void setInputData(int input_sendcount, double* input_data);
         void setOutputData(int output_sendcount, double* output_data);
 
-        int getTotalInputCount(){return total_input_count_;}
-        int getTotalOutputCount(){return total_output_count_;}
-
     private:
         bool is_device_controller_;
 
@@ -35,14 +32,12 @@ class CollectiveCommunication : public CommunicationStrategy
         double* input_data_worker_;
 
         int input_sendcount_;
-        int total_input_count_;
         std::vector<int> input_recvcounts_;
         std::vector<int> input_displs_;
 
         double* output_data_worker_;       
 
         int output_sendcount_;
-        int total_output_count_;
         std::vector<int> output_recvcounts_;
         std::vector<int> output_displs_;
 };
