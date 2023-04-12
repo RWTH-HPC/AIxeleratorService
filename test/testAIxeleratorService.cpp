@@ -19,25 +19,12 @@ int main(int argc, char *argv[])
 
     std::string model_file = argv[1];
 
-    int n_samples = 10000;
-    /*
+    int n_samples = 2;
+    
     std::vector<int64_t> input_shape = { n_samples, 2 };
     std::vector<double> input(n_samples*2, (double)my_rank);
     std::vector<int64_t> output_shape = { n_samples, 2 };
     std::vector<double> output(n_samples*2, -13.37);
-    */
-
-    std::cout << "sizeof(double) = " << sizeof(double) << std::endl;
-    std::cout << "sizeof(double*) = " << sizeof(double*) << std::endl;
-    std::cout << "sizeof(float) = " << sizeof(float) << std::endl;
-    std::cout << "sizeof(float*) = " << sizeof(float*) << std::endl;
-
-    // GAN
-    std::vector<int64_t> input_shape = { 1, 32, 32, 32, 3 };
-    std::vector<float> input(1*32*32*32*3, (float)my_rank);
-
-    std::vector<int64_t> output_shape = { 1, 64, 64, 64, 3 };
-    std::vector<float> output(1*64*64*64*3, -13.37);
 
     int batchsize = 1;
 
