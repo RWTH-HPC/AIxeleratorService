@@ -18,10 +18,11 @@
 #include <iostream>
 #include <fstream>
 
-AIxeleratorService::AIxeleratorService(
+template<typename T>
+AIxeleratorService<T>::AIxeleratorService(
     std::string model_file,
-    std::vector<int64_t> input_shape, double* input_data,
-    std::vector<int64_t> output_shape, double* output_data,
+    std::vector<int64_t> input_shape, T* input_data,
+    std::vector<int64_t> output_shape, T* output_data,
     int batchsize
 )   :   model_file_name_{model_file}, 
         input_shape_{input_shape}, input_data_{input_data}, 
@@ -42,7 +43,7 @@ AIxeleratorService::AIxeleratorService(
 
     distributor_ = std::make_unique<RoundRobinDistribution>();
 
-    communicator_ = std::make_unique<CollectiveCommunication>( 
+    communicator_ = std::make_unique<CollectiveCommunication<T>>( 
         input_shape, input_data, 
         output_shape, output_data, 
         distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator()) 
@@ -71,8 +72,8 @@ AIxeleratorService::AIxeleratorService(
     initInferenceStrategy(best_batchsizes);
 }
 
-
-AIxeleratorService::~AIxeleratorService()
+template<typename T>
+AIxeleratorService<T>::~AIxeleratorService()
 {
     inferencing_.reset();
     distributor_.reset();
@@ -88,7 +89,6 @@ AIxeleratorService::~AIxeleratorService()
     }
 #endif
 }
-
 
 
 AIFramework getAIFrameworkFromModel(std::string model_file)
@@ -117,28 +117,30 @@ AIFramework getAIFrameworkFromModel(std::string model_file)
     return AIX_UNKNOWN;    
 }
 
-void AIxeleratorService::registerModel(std::string model_file)
+template<typename T>
+void AIxeleratorService<T>::registerModel(std::string model_file)
 {
     // TODO: only GPU-controller ranks should create unique pointers with inference strategy. This requires to initalize distribution in constructor
     model_file_name_ = model_file;
     framework_ = getAIFrameworkFromModel(model_file_name_);
 }
 
-std::unique_ptr<InferenceStrategy> AIxeleratorService::createInferenceStrategy()
+template<typename T>
+std::unique_ptr<InferenceStrategy<T>> AIxeleratorService<T>::createInferenceStrategy()
 {
-    std::unique_ptr<InferenceStrategy> strategy;
+    std::unique_ptr<InferenceStrategy<T>> strategy;
     switch(framework_)
     {
         case AIX_TORCH:
 #ifdef WITH_TORCH
-            strategy = std::make_unique<TorchInference>();
+            strategy = std::make_unique<TorchInference<T>>();
 #else   
             std::cerr << "Error: AIxeleratorService was not built with Torch backend!" << std::endl;
 #endif
             break;
         case AIX_TENSORFLOW:
 #ifdef WITH_TENSORFLOW
-            strategy = std::make_unique<TensorflowInference>();
+            strategy = std::make_unique<TensorflowInference<T>>();
 #else
             std::cerr << "Error: AIxeleratorService was not built with Tensorflow backend!" << std::endl;
 #endif
@@ -158,19 +160,20 @@ std::unique_ptr<InferenceStrategy> AIxeleratorService::createInferenceStrategy()
     return std::move(strategy);
 }
 
-std::pair<int64_t, int64_t> AIxeleratorService::findHybridBatchsize()
+template<typename T>
+std::pair<int64_t, int64_t> AIxeleratorService<T>::findHybridBatchsize()
 {
     int num_workers = distributor_->getWorkGroupSize();
     int total_input_count = communicator_->getTotalInputCount();
     int total_output_count = communicator_->getTotalOutputCount();
 
-    double* dummy_input_data = new double[total_input_count];
+    T* dummy_input_data = new T[total_input_count];
     for (int k = 0; k < total_input_count; k++)
     {
         dummy_input_data[k] = 13.37;
     }
 
-    double* dummy_output_data = new double[total_output_count];
+    T* dummy_output_data = new T[total_output_count];
     for (int k = 0; k < total_output_count; k++)
     {
         dummy_output_data[k] = -42.24;
@@ -184,7 +187,7 @@ std::pair<int64_t, int64_t> AIxeleratorService::findHybridBatchsize()
     myfile << "host_fraction, batch_dim, batch_host, time_host, batch_device, time_device, hybrid_error" << std::endl;
 
 
-    int num_samples = 100; 
+    int num_samples = 1; 
     std::vector<int64_t> batchsizes_host(num_samples, -1);
     std::vector<int64_t> batchsizes_device(num_samples, -1);
     std::vector<double> times_host(num_samples, 0.0);
@@ -221,13 +224,13 @@ std::pair<int64_t, int64_t> AIxeleratorService::findHybridBatchsize()
         int64_t num_output_elem_per_batch = std::accumulate(std::next(output_shape_.begin(), 1), output_shape_.end(), 1, std::multiplies<int>());
         output_data_device_ = &dummy_output_data[batch_host * num_output_elem_per_batch];
 
-        std::unique_ptr<InferenceStrategy> inference_host = createInferenceStrategy();
+        std::unique_ptr<InferenceStrategy<T>> inference_host = createInferenceStrategy();
         if (batch_host > 0)
         {
             inference_host->init(batch_host, -1, model_file_name_, input_shape_host_, input_data_host_, output_shape_host_, output_data_host_);
         }
 
-        std::unique_ptr<InferenceStrategy> inference_device = createInferenceStrategy();
+        std::unique_ptr<InferenceStrategy<T>> inference_device = createInferenceStrategy();
         if (batch_device > 0)
         {
             inference_device->init(batch_device, distributor_->getDeviceID(), model_file_name_, input_shape_device_, input_data_device_, output_shape_device_, output_data_device_); 
@@ -319,7 +322,8 @@ std::pair<int64_t, int64_t> AIxeleratorService::findHybridBatchsize()
     return best_batchsizes;
 }
 
-void AIxeleratorService::initInferenceStrategy(std::pair<int64_t, int64_t> best_batchsizes)
+template<typename T>
+void AIxeleratorService<T>::initInferenceStrategy(std::pair<int64_t, int64_t> best_batchsizes)
 {
     switch(inference_mode_)
     {
@@ -357,26 +361,31 @@ void AIxeleratorService::initInferenceStrategy(std::pair<int64_t, int64_t> best_
 
             // create communicator only for the device partition of input_data
             communicator_.reset();
-            communicator_ = std::make_unique<CollectiveCommunication>(
+            communicator_ = std::make_unique<CollectiveCommunication<T>>(
                 input_shape_device_, input_data_device_, 
                 output_shape_device_, output_data_device_, 
                 distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator())
             );
 
             inferencing_host_ = createInferenceStrategy();
-            inferencing_host_->init(batch_host, -1, model_file_name_, input_shape_host_, input_data_host_, output_shape_host_, output_data_host_);
+            if (batch_host > 0){
+                inferencing_host_->init(batch_host, -1, model_file_name_, input_shape_host_, input_data_host_, output_shape_host_, output_data_host_);
+            }
             if(distributor_->isGPUController())
             {
                 inferencing_device_ = createInferenceStrategy();
                 int device_id = distributor_->getDeviceID();
 
-                double* input_data_controller = communicator_->getInputDataController();
-                double* output_data_controller = communicator_->getOutputDataController();
+                T* input_data_controller = communicator_->getInputDataController();
+                T* output_data_controller = communicator_->getOutputDataController();
 
                 std::vector<int64_t> input_shape_controller = communicator_->getInputShapeController();
                 std::vector<int64_t> output_shape_controller = communicator_->getOutputShapeController();
 
-                inferencing_device_->init(batchsize_, device_id, model_file_name_, input_shape_controller, input_data_controller, output_shape_controller, output_data_controller);
+                if (batch_device > 0)
+                {
+                    inferencing_device_->init(batchsize_, device_id, model_file_name_, input_shape_controller, input_data_controller, output_shape_controller, output_data_controller);
+                }
             }
             break;
         }
@@ -387,8 +396,8 @@ void AIxeleratorService::initInferenceStrategy(std::pair<int64_t, int64_t> best_
                 inferencing_ = createInferenceStrategy();
 
                 int device_id = distributor_->getDeviceID();
-                double* input_data_controller = communicator_->getInputDataController();
-                double* output_data_controller = communicator_->getOutputDataController();
+                T* input_data_controller = communicator_->getInputDataController();
+                T* output_data_controller = communicator_->getOutputDataController();
 
                 std::vector<int64_t> input_shape_controller = communicator_->getInputShapeController();
                 std::vector<int64_t> output_shape_controller = communicator_->getOutputShapeController();
@@ -432,7 +441,8 @@ void AIxeleratorService::registerTensors(
 }
 */
 
-void AIxeleratorService::inference()
+template<typename T>
+void AIxeleratorService<T>::inference()
 {
     switch( inference_mode_ )
     {
@@ -440,11 +450,14 @@ void AIxeleratorService::inference()
         {
             communicator_->gatherInputData();
 
-            if ( distributor_->isGPUController() )
+            if ( distributor_->isGPUController() && input_shape_device_[0] > 0 )
             {
                 inferencing_device_->inference();
             }
-            inferencing_host_->inference();
+            if ( input_shape_host_[0] > 0)
+            {
+                inferencing_host_->inference();
+            }
 
             communicator_->scatterOutputData(); 
             break;
@@ -473,3 +486,6 @@ void AIxeleratorService::inference()
         }
     }
 }
+
+template class AIxeleratorService<float>;
+template class AIxeleratorService<double>;

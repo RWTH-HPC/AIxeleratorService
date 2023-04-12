@@ -3,9 +3,10 @@
 #include <iostream>
 #include <numeric>
 
-CollectiveCommunication::CollectiveCommunication(
-    std::vector<int64_t> input_shape, double* input_data, 
-    std::vector<int64_t> output_shape, double* output_data, 
+template<typename T>
+CollectiveCommunication<T>::CollectiveCommunication(
+    std::vector<int64_t> input_shape, T* input_data, 
+    std::vector<int64_t> output_shape, T* output_data, 
     bool is_device_controller, MPI_Comm work_group_comm)
 {
 
@@ -23,10 +24,10 @@ CollectiveCommunication::CollectiveCommunication(
     int batch_dim = input_shape[0];
     int total_batch_dim = 0;
     MPI_Reduce(&batch_dim, &total_batch_dim, 1, MPI_INT, MPI_SUM, 0, work_group_comm_);
-    input_shape_controller_ = input_shape;
-    input_shape_controller_[0] = total_batch_dim;
-    output_shape_controller_ = output_shape;
-    output_shape_controller_[0] = total_batch_dim;
+    this->input_shape_controller_ = input_shape;
+    this->input_shape_controller_[0] = total_batch_dim;
+    this->output_shape_controller_ = output_shape;
+    this->output_shape_controller_[0] = total_batch_dim;
 
     if( is_device_controller_ )
     {
@@ -58,42 +59,72 @@ CollectiveCommunication::CollectiveCommunication(
             output_displs_[i] = output_displs_[i-1] + output_recvcounts_[i-1];
         }  
 
-        total_input_count_ = std::accumulate(input_recvcounts_.begin(), input_recvcounts_.end(), 0);
-        total_output_count_ = std::accumulate(output_recvcounts_.begin(), output_recvcounts_.end(), 0);
+        this->total_input_count_ = std::accumulate(input_recvcounts_.begin(), input_recvcounts_.end(), 0);
+        this->total_output_count_ = std::accumulate(output_recvcounts_.begin(), output_recvcounts_.end(), 0);
 
-        input_data_controller_ = new double[total_input_count_];
-        output_data_controller_ = new double[total_output_count_];
+        this->input_data_controller_ = new T[this->total_input_count_];
+        this->output_data_controller_ = new T[this->total_output_count_];
     }
 }
 
-CollectiveCommunication::~CollectiveCommunication()
+template<typename T>
+CollectiveCommunication<T>::~CollectiveCommunication()
 {
     if( is_device_controller_ )
     {
-        delete[] input_data_controller_;
-        delete[] output_data_controller_;
+        delete[] this->input_data_controller_;
+        delete[] this->output_data_controller_;
     }
 }
 
-void CollectiveCommunication::setInputData(int input_sendcount, double* input_data)
+template<typename T>
+void CollectiveCommunication<T>::setInputData(int input_sendcount, T* input_data)
 {
     input_sendcount_ = input_sendcount;
     input_data_worker_ = input_data;
 }
 
-void CollectiveCommunication::setOutputData(int output_sendcount, double* output_data)
+template<typename T>
+void CollectiveCommunication<T>::setOutputData(int output_sendcount, T* output_data)
 {
     output_sendcount_ = output_sendcount;
     output_data_worker_ = output_data;
 }
 
-
-void CollectiveCommunication::gatherInputData()
+template<typename T>
+MPI_Datatype getTypeFromTemplate()
 {
-    MPI_Gatherv(input_data_worker_, input_sendcount_, MPI_DOUBLE, input_data_controller_, input_recvcounts_.data(), input_displs_.data(), MPI_DOUBLE, 0, work_group_comm_);  
+    if (std::is_same<T, float>::value)
+    {
+        return MPI_FLOAT;
+    }
+
+    if (std::is_same<T, double>::value)
+    {
+        return MPI_DOUBLE;
+    }
+
+    std::cerr << "ERROR: Could not get MPI_Datatype from template - defaulting to MPI_FLOAT!" << std::endl;
+    // TODO(fabian): find a nicer way to handle error. Maybe use std::optional as return type?
+    return MPI_FLOAT;
 }
 
-void CollectiveCommunication::scatterOutputData()
+template<typename T>
+void CollectiveCommunication<T>::gatherInputData()
 {
-    MPI_Scatterv(output_data_controller_, output_recvcounts_.data(), output_displs_.data(), MPI_DOUBLE, output_data_worker_, output_sendcount_, MPI_DOUBLE, 0, work_group_comm_);
+    MPI_Datatype dtype = getTypeFromTemplate<T>();
+
+    MPI_Gatherv(input_data_worker_, input_sendcount_, dtype, this->input_data_controller_, input_recvcounts_.data(), input_displs_.data(), dtype, 0, work_group_comm_);  
 }
+
+template<typename T>
+void CollectiveCommunication<T>::scatterOutputData()
+{
+    MPI_Datatype dtype = getTypeFromTemplate<T>();
+
+    MPI_Scatterv(this->output_data_controller_, output_recvcounts_.data(), output_displs_.data(), dtype, output_data_worker_, output_sendcount_, dtype, 0, work_group_comm_);
+}
+
+
+template class CollectiveCommunication<float>;
+template class CollectiveCommunication<double>;

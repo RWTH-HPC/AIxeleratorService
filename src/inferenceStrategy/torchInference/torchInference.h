@@ -4,7 +4,8 @@
 #include "inferenceStrategy/inferenceStrategy.h"
 #include <torch/script.h>
 
-class TorchInference : public InferenceStrategy
+template<typename T>
+class TorchInference : public InferenceStrategy<T>
 {
     public:
         TorchInference() = default;
@@ -14,8 +15,8 @@ class TorchInference : public InferenceStrategy
             int batchsize, 
             int device_id, 
             std::string model_file_name, 
-            std::vector<int64_t>& input_shape, double* inputData, 
-            std::vector<int64_t>& output_shape, double* outputData
+            std::vector<int64_t>& input_shape, T* inputData, 
+            std::vector<int64_t>& output_shape, T* outputData
         ) override;
         //void setInput() override;
         //void setOutput() override;

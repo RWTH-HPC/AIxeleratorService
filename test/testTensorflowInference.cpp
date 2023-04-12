@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
     std::string model_file_name = "../models/tensorflowModels/flexMLP-2x100x100x2.tf";
 
-    TensorflowInference tensorflowInfer;
+    TensorflowInference<double> tensorflowInfer;
     tensorflowInfer.init(batchsize, device_id, model_file_name, input_shape, input_data, output_shape, output_data);
 
     std::cout << "Tensorflow Inference Test inference now!" << std::endl;

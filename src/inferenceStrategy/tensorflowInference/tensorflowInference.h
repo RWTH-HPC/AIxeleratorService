@@ -9,7 +9,8 @@
 #include <vector>
 #include <string>
 
-class TensorflowInference : public InferenceStrategy
+template<typename T>
+class TensorflowInference : public InferenceStrategy<T>
 {
     public:
         TensorflowInference();
@@ -19,8 +20,8 @@ class TensorflowInference : public InferenceStrategy
             int batchsize, 
             int device_id, 
             std::string model_file_name, 
-            std::vector<int64_t>& input_shape, double* input_data, 
-            std::vector<int64_t>& output_shape, double* output_data
+            std::vector<int64_t>& input_shape, T* input_data, 
+            std::vector<int64_t>& output_shape, T* output_data
         ) override;
         void inference() override;
 
@@ -52,13 +53,13 @@ class TensorflowInference : public InferenceStrategy
 
         std::vector<int> tensor_offsets_;
 
-        double* app_input_;
-        double* app_output_;
+        T* app_input_;
+        T* app_output_;
 
         void initSession();
         void initTensors(
-            std::vector<int64_t>& input_shape, double* input_data, 
-            std::vector<int64_t>& output_shape, double* output_data
+            std::vector<int64_t>& input_shape, T* input_data, 
+            std::vector<int64_t>& output_shape, T* output_data
         );
 };
 

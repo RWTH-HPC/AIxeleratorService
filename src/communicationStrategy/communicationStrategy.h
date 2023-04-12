@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 
+template<typename T>
 class CommunicationStrategy
 {
     public:
@@ -12,8 +13,8 @@ class CommunicationStrategy
         virtual void gatherInputData() = 0;
         virtual void scatterOutputData() = 0;
 
-        double* getInputDataController(){ return input_data_controller_; }
-        double* getOutputDataController(){ return output_data_controller_; }
+        T* getInputDataController(){ return input_data_controller_; }
+        T* getOutputDataController(){ return output_data_controller_; }
     
         std::vector<int64_t> getInputShapeController(){return input_shape_controller_;}
         std::vector<int64_t> getOutputShapeController(){return output_shape_controller_;}
@@ -22,8 +23,8 @@ class CommunicationStrategy
         int getTotalOutputCount(){return total_output_count_;}
 
     protected:
-        double* input_data_controller_;
-        double* output_data_controller_;
+        T* input_data_controller_;
+        T* output_data_controller_;
 
         std::vector<int64_t> input_shape_controller_;
         std::vector<int64_t> output_shape_controller_; 

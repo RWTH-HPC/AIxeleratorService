@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 
     std::string model_file_name = "../models/torchModels/flexMLP-2x100x100x2.pt";
 
-    TorchInference torchInfer;
+    TorchInference<double> torchInfer;
     //torchInfer.init(batchsize, device_id, model_file_name, input_shape, p_input, output_shape, p_output);
     torchInfer.init(batchsize, device_id, model_file_name, input_shape, input_data, output_shape, output_data);
 

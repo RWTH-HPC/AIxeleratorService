@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+template<typename T>
 class InferenceStrategy
 {
     public:
@@ -15,8 +16,8 @@ class InferenceStrategy
             int batchsize, 
             int device_id, 
             std::string model_file_name, 
-            std::vector<int64_t>& input_shape, double* inputData, 
-            std::vector<int64_t>& output_shape, double* outputData
+            std::vector<int64_t>& input_shape, T* inputData, 
+            std::vector<int64_t>& output_shape, T* outputData
         ) = 0;
         virtual void inference() = 0;
 };

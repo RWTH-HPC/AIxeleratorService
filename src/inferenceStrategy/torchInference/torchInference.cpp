@@ -6,14 +6,40 @@
 
 #include <ATen/ATen.h>
 
-void TorchInference::init(
+template<typename T>
+torch::Dtype getTypeFromTemplate()
+{
+    if (std::is_same<T, float>::value)
+    {
+        return torch::kFloat32;  
+    }
+
+    if (std::is_same<T, double>::value)
+    {
+        return torch::kFloat64;
+    }
+
+    std::cerr << "ERROR: Could not get torch::Dtype from template parameter - defaulting to kFloat16!" << std::endl;
+    // TODO(fabian): find a nicer way to handle error. Maybe use std::optional as return type?
+    return torch::kFloat16;
+}
+
+template torch::Dtype getTypeFromTemplate<float>();
+template torch::Dtype getTypeFromTemplate<double>();
+
+template<typename T>
+void TorchInference<T>::init(
     int batchsize, 
     int device_id, 
     std::string model_file_name, 
-    std::vector<int64_t>& input_shape, double* inputData,  std::vector<int64_t>& output_shape, double* outputData
+    std::vector<int64_t>& input_shape, T* inputData,  
+    std::vector<int64_t>& output_shape, T* outputData
 ){
     device_id_ = device_id;
     model_file_name_ = model_file_name;
+
+    auto dtype = getTypeFromTemplate<T>();
+
     try{
         torch_model_ = torch::jit::load(model_file_name_);
 
@@ -25,7 +51,7 @@ void TorchInference::init(
         else 
         {   
             // TODO: datatype needs to be templated
-            torch_model_.to(torch::kFloat64);
+            torch_model_.to(dtype);
         }
     }
     catch (const c10::Error& e) {
@@ -38,7 +64,7 @@ void TorchInference::init(
         std::cerr << "Error in init TorchInference: batchsize should not be zero or negative!" << std::endl;
     }
 
-    const torch::TensorOptions options(torch::kFloat64);
+    const torch::TensorOptions options(dtype);
     
     at::IntArrayRef input_sizes = input_shape;
     input_ = torch::from_blob((void*) inputData, input_sizes, options);
@@ -47,7 +73,8 @@ void TorchInference::init(
     output_ = torch::from_blob((void*) outputData, output_sizes, options);
 }
 
-void TorchInference::inference()
+template<typename T>
+void TorchInference<T>::inference()
 {
     int batch_dim = input_.size(0);
     int num_batches = batch_dim / batchsize_;
@@ -79,3 +106,7 @@ void TorchInference::inference()
         }   
     }
 }
+
+
+template class TorchInference<float>;
+template class TorchInference<double>;

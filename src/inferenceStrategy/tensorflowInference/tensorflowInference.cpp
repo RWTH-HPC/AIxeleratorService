@@ -14,12 +14,14 @@ void fake_tensor_deallocator(void* data, size_t len, void* arg)
 }
 */
 
-TensorflowInference::TensorflowInference()
+template<typename T>
+TensorflowInference<T>::TensorflowInference()
 {
 
 }
 
-TensorflowInference::~TensorflowInference()
+template<typename T>
+TensorflowInference<T>::~TensorflowInference()
 {
     // TODO: only GPU-Controller ranks should create TFInference object in AIxeleratorService
     // currently causing a nullptr error
@@ -35,7 +37,8 @@ TensorflowInference::~TensorflowInference()
     */
 }
 
-void TensorflowInference::initSession()
+template<typename T>
+void TensorflowInference<T>::initSession()
 {
     session_opts_ = TF_NewSessionOptions();
     // we need to get a serialized config to set GPU as there seems to exist no dedicated function in the C API
@@ -102,10 +105,31 @@ void TensorflowInference::initSession()
     graph_outputs_[0] = o0;
 }
 
-void TensorflowInference::initTensors(
-    std::vector<int64_t>& input_shape, double* input_data, 
-    std::vector<int64_t>& output_shape, double* output_data
+template<typename T>
+TF_DataType getTypeFromTemplate()
+{
+    if (std::is_same<T, float>::value)
+    {
+        return TF_FLOAT;  
+    }
+
+    if (std::is_same<T, double>::value)
+    {
+        return TF_DOUBLE;
+    }
+
+    std::cerr << "ERROR: Could not get TF_DataType from template parameter!" << std::endl;
+    // TODO(fabian): find a nicer way to handle error. Maybe use std::optional as return type?
+    return static_cast<TF_DataType>(-1);
+}
+
+template<typename T>
+void TensorflowInference<T>::initTensors(
+    std::vector<int64_t>& input_shape, T* input_data, 
+    std::vector<int64_t>& output_shape, T* output_data
 ){
+    TF_DataType dtype = getTypeFromTemplate<T>();
+
     int batch_dim = input_shape[0];
     // TODO: generalize for tensors with dim > 2
     // TODO: also remove assumption that input_second_dim == output_second_dim
@@ -129,39 +153,39 @@ void TensorflowInference::initTensors(
     shape = input_shape;
     shape[0] = batchsize_;
     num_elems = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
-    input_batch_len_ = sizeof(double*) * num_elems;
-    input_batch_ = TF_AllocateTensor(TF_DOUBLE, shape.data(), shape.size(), input_batch_len_);
+    input_batch_len_ = sizeof(T) * num_elems;
+    input_batch_ = TF_AllocateTensor(dtype, shape.data(), shape.size(), input_batch_len_);
 
     // allocate InputTensor BatchRemainder
     shape = input_shape;
     shape[0] = size_remaining_;
     num_elems = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
-    input_remainder_len_ = sizeof(double*) * num_elems;
-    input_remainder_ = TF_AllocateTensor(TF_DOUBLE, shape.data(), shape.size(), input_remainder_len_);
+    input_remainder_len_ = sizeof(T) * num_elems;
+    input_remainder_ = TF_AllocateTensor(dtype, shape.data(), shape.size(), input_remainder_len_);
 
     // allocate OutputTensor Batch
     shape = output_shape;
     shape[0] = batchsize_;
     num_elems = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
-    output_batch_len_ = sizeof(double*) * num_elems;
-    output_batch_ = TF_AllocateTensor(TF_DOUBLE, shape.data(), shape.size(), output_batch_len_);
+    output_batch_len_ = sizeof(T) * num_elems;
+    output_batch_ = TF_AllocateTensor(dtype, shape.data(), shape.size(), output_batch_len_);
 
     // allocate OutputTensor BatchRemainder
     shape = output_shape;
     shape[0] = size_remaining_;
     num_elems = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
-    output_remainder_len_ = sizeof(double*) * num_elems;
-    output_remainder_ = TF_AllocateTensor(TF_DOUBLE, shape.data(), shape.size(), output_remainder_len_);
+    output_remainder_len_ = sizeof(T) * num_elems;
+    output_remainder_ = TF_AllocateTensor(dtype, shape.data(), shape.size(), output_remainder_len_);
 }
 
 
-
-void TensorflowInference::init(
+template<typename T>
+void TensorflowInference<T>::init(
     int batchsize, 
     int device_id, 
     std::string model_file_name, 
-    std::vector<int64_t>& input_shape, double* input_data, 
-    std::vector<int64_t>& output_shape, double* output_data
+    std::vector<int64_t>& input_shape, T* input_data, 
+    std::vector<int64_t>& output_shape, T* output_data
 ){
     batchsize_ = batchsize;
     if (batchsize_ < 1)
@@ -178,11 +202,12 @@ void TensorflowInference::init(
     app_output_ = output_data;
 }
 
-void TensorflowInference::inference()
+template<typename T>
+void TensorflowInference<T>::inference()
 {
     for( int i = 0; i < num_batches_; i++ )
     {
-        double* input_batch_data = (double*) TF_TensorData(input_batch_);
+        T* input_batch_data = (T*) TF_TensorData(input_batch_);
         std::memcpy(input_batch_data, &(app_input_)[tensor_offsets_[i]], input_batch_len_);
 
         TF_SessionRun(session_, NULL, graph_inputs_, &input_batch_, num_graph_inputs_, graph_outputs_, &output_batch_, num_graph_outputs_, NULL, 0, NULL, status_);
@@ -191,7 +216,7 @@ void TensorflowInference::inference()
             std::cout << "Tensorflow Run Session Error: " << TF_Message(status_) << std::endl;
         }
 
-        double* output_batch_data = (double*) TF_TensorData(output_batch_);
+        T* output_batch_data = (T*) TF_TensorData(output_batch_);
         // TODO(Fabian): we should find a way to avoid this memcpy
         // but TF always allocates new memory internally in TF_SessionRun()
         std::memcpy(&(app_output_)[tensor_offsets_[i]], output_batch_data, output_batch_len_);
@@ -200,7 +225,7 @@ void TensorflowInference::inference()
     // remainder inference
     if(size_remaining_ > 0)
     {
-        double* input_remainder_data = (double*) TF_TensorData(input_remainder_);  
+        T* input_remainder_data = (T*) TF_TensorData(input_remainder_);  
         std::memcpy(input_remainder_data, &(app_input_)[tensor_offsets_[num_batches_]], input_remainder_len_); 
 
         TF_SessionRun(session_, NULL, graph_inputs_, &input_remainder_, num_graph_inputs_, graph_outputs_, &output_remainder_, num_graph_outputs_, NULL, 0, NULL, status_);
@@ -209,7 +234,10 @@ void TensorflowInference::inference()
             std::cout << "Tensorflow Run Session (Remainder) Error: " << TF_Message(status_) << std::endl;
         }
 
-        double* output_remainder_data = (double*) TF_TensorData(output_remainder_);
+        T* output_remainder_data = (T*) TF_TensorData(output_remainder_);
         std::memcpy(&(app_output_)[tensor_offsets_[num_batches_]], output_remainder_data, output_remainder_len_);
     }
 }
+
+template class TensorflowInference<float>;
+template class TensorflowInference<double>;
