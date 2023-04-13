@@ -37,10 +37,6 @@ class AIxeleratorService
         ~AIxeleratorService();
 
         void registerModel(std::string model_file);
-        void registerTensors(
-            std::vector<int64_t> input_shape, T* input_data,
-            std::vector<int64_t> output_shape, T* output_data
-        );
         void inference();
         void setBatchsize(int batchsize){ batchsize_ = batchsize; }
 

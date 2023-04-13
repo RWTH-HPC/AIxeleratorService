@@ -42,12 +42,7 @@ AIxeleratorService<T>::AIxeleratorService(
 #endif
 
     distributor_ = std::make_unique<RoundRobinDistribution>();
-
-    communicator_ = std::make_unique<CollectiveCommunication<T>>( 
-        input_shape, input_data, 
-        output_shape, output_data, 
-        distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator()) 
-    );
+    std::pair<int64_t, int64_t> best_batchsizes(-1, -1);
 
     int num_devices_total = distributor_->getNumDevicesTotal();
     if (num_devices_total > 0)
@@ -55,20 +50,29 @@ AIxeleratorService<T>::AIxeleratorService(
         inference_mode_ = AIX_HYBRID;
         //inference_mode_ = AIX_GPU; // TODO(fabian): add flag to switch between GPU and HYBRID inference or pass inference mode as parameter to constructor?
 
+        communicator_ = std::make_unique<CollectiveCommunication<T>>( 
+            input_shape, input_data, 
+            output_shape, output_data, 
+            distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator()) 
+        );
+
+        if (distributor_->isGPUController() )
+        {
+            best_batchsizes = findHybridBatchsize();
+        }
+        MPI_Bcast(&best_batchsizes.first, 1, MPI_INT64_T, 0, *(distributor_->getWorkGroupCommunicator()) );
+        MPI_Bcast(&best_batchsizes.second, 1, MPI_INT64_T, 0, *(distributor_->getWorkGroupCommunicator()) );
     }
     else
     {
         inference_mode_ = AIX_CPU;
+        communicator_ = nullptr;
         batchsize_ = std::min<int>(batchsize_, input_shape_[0]); // TODO(fabian): is that the right place to check it?
+
+        // in the absence of devices, all samples should be inferred on the host (CPU)
+        best_batchsizes = {input_shape_[0], 0};
     }
     
-    std::pair<int64_t, int64_t> best_batchsizes(-1, -1);
-    if (distributor_->isGPUController() )
-    {
-        best_batchsizes = findHybridBatchsize();
-    }
-    MPI_Bcast(&best_batchsizes.first, 1, MPI_INT64_T, 0, *(distributor_->getWorkGroupCommunicator()) );
-    MPI_Bcast(&best_batchsizes.second, 1, MPI_INT64_T, 0, *(distributor_->getWorkGroupCommunicator()) );
     initInferenceStrategy(best_batchsizes);
 }
 
@@ -325,165 +329,85 @@ std::pair<int64_t, int64_t> AIxeleratorService<T>::findHybridBatchsize()
 template<typename T>
 void AIxeleratorService<T>::initInferenceStrategy(std::pair<int64_t, int64_t> best_batchsizes)
 {
-    switch(inference_mode_)
+    // determine batch dimension for host & device
+    int64_t batch_host = best_batchsizes.first;
+    int64_t batch_device = best_batchsizes.second;
+
+    // determine input data shape for host and device
+    input_shape_host_ = input_shape_;
+    input_shape_host_[0] = batch_host;
+    input_shape_device_ = input_shape_;
+    input_shape_device_[0] = batch_device;
+
+    output_shape_host_ = output_shape_;
+    output_shape_host_[0] = batch_host;
+    output_shape_device_ = output_shape_;
+    output_shape_device_[0] = batch_device;
+
+    // setup data pointers accordingly
+    input_data_host_ = &input_data_[0];
+    int64_t num_input_elem_per_batch = std::accumulate(std::next(input_shape_.begin(), 1), input_shape_.end(), 1, std::multiplies<int>());
+    input_data_device_ = &input_data_[batch_host * num_input_elem_per_batch];
+
+    output_data_host_ = &output_data_[0];
+    int64_t num_output_elem_per_batch = std::accumulate(std::next(output_shape_.begin(), 1), output_shape_.end(), 1, std::multiplies<int>());
+    output_data_device_ = &output_data_[batch_host * num_output_elem_per_batch];
+
+    // create communicator only for the device partition of input_data
+    communicator_.reset();
+    if (distributor_->getNumDevicesTotal() > 0)
     {
-        case AIX_HYBRID:
+        communicator_ = std::make_unique<CollectiveCommunication<T>>(
+            input_shape_device_, input_data_device_, 
+            output_shape_device_, output_data_device_, 
+            distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator())
+        );
+    }
+
+    inferencing_host_ = createInferenceStrategy();
+    if (batch_host > 0){
+        inferencing_host_->init(batch_host, -1, model_file_name_, input_shape_host_, input_data_host_, output_shape_host_, output_data_host_);
+    }
+    if(distributor_->isGPUController())
+    {
+        inferencing_device_ = createInferenceStrategy();
+        int device_id = distributor_->getDeviceID();
+
+        T* input_data_controller = communicator_->getInputDataController();
+        T* output_data_controller = communicator_->getOutputDataController();
+
+        std::vector<int64_t> input_shape_controller = communicator_->getInputShapeController();
+        std::vector<int64_t> output_shape_controller = communicator_->getOutputShapeController();
+
+        if (batch_device > 0)
         {
-            // determine batch dimension for host & device
-            /*
-            double batch_fraction_host = 0.5;
-            int64_t batch_dim = input_shape_[0];
-            int64_t batch_host = batch_dim * batch_fraction_host;
-            int64_t batch_device = batch_dim - batch_host;
-            */
-            int64_t batch_host = best_batchsizes.first;
-            int64_t batch_device = best_batchsizes.second;
-
-            // determine input data shape for host and device
-            input_shape_host_ = input_shape_;
-            input_shape_host_[0] = batch_host;
-            input_shape_device_ = input_shape_;
-            input_shape_device_[0] = batch_device;
-
-            output_shape_host_ = output_shape_;
-            output_shape_host_[0] = batch_host;
-            output_shape_device_ = output_shape_;
-            output_shape_device_[0] = batch_device;
-
-            // setup data pointers accordingly
-            input_data_host_ = &input_data_[0];
-            int64_t num_input_elem_per_batch = std::accumulate(std::next(input_shape_.begin(), 1), input_shape_.end(), 1, std::multiplies<int>());
-            input_data_device_ = &input_data_[batch_host * num_input_elem_per_batch];
-
-            output_data_host_ = &output_data_[0];
-            int64_t num_output_elem_per_batch = std::accumulate(std::next(output_shape_.begin(), 1), output_shape_.end(), 1, std::multiplies<int>());
-            output_data_device_ = &output_data_[batch_host * num_output_elem_per_batch];
-
-            // create communicator only for the device partition of input_data
-            communicator_.reset();
-            communicator_ = std::make_unique<CollectiveCommunication<T>>(
-                input_shape_device_, input_data_device_, 
-                output_shape_device_, output_data_device_, 
-                distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator())
-            );
-
-            inferencing_host_ = createInferenceStrategy();
-            if (batch_host > 0){
-                inferencing_host_->init(batch_host, -1, model_file_name_, input_shape_host_, input_data_host_, output_shape_host_, output_data_host_);
-            }
-            if(distributor_->isGPUController())
-            {
-                inferencing_device_ = createInferenceStrategy();
-                int device_id = distributor_->getDeviceID();
-
-                T* input_data_controller = communicator_->getInputDataController();
-                T* output_data_controller = communicator_->getOutputDataController();
-
-                std::vector<int64_t> input_shape_controller = communicator_->getInputShapeController();
-                std::vector<int64_t> output_shape_controller = communicator_->getOutputShapeController();
-
-                if (batch_device > 0)
-                {
-                    inferencing_device_->init(batchsize_, device_id, model_file_name_, input_shape_controller, input_data_controller, output_shape_controller, output_data_controller);
-                }
-            }
-            break;
-        }
-        case AIX_GPU:
-        {
-            if (distributor_->isGPUController())
-            {
-                inferencing_ = createInferenceStrategy();
-
-                int device_id = distributor_->getDeviceID();
-                T* input_data_controller = communicator_->getInputDataController();
-                T* output_data_controller = communicator_->getOutputDataController();
-
-                std::vector<int64_t> input_shape_controller = communicator_->getInputShapeController();
-                std::vector<int64_t> output_shape_controller = communicator_->getOutputShapeController();
-
-                inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_controller, input_data_controller, output_shape_controller, output_data_controller);
-            }
-            break;
-        }
-        case AIX_CPU:
-        {
-            int device_id = -1;
-
-            inferencing_ = createInferenceStrategy();
-
-            inferencing_->init(batchsize_, device_id, model_file_name_, input_shape_, input_data_, output_shape_, output_data_);
-            break;
-        }
-        default:
-        {
-            std::cerr << "Error: AIxeleratorService inference mode: " << inference_mode_ << std::endl;
-            break;
+            inferencing_device_->init(batchsize_, device_id, model_file_name_, input_shape_controller, input_data_controller, output_shape_controller, output_data_controller);
         }
     }
+
 }
-
-// note(fabian): this function is currently not used
-/*
-void AIxeleratorService::registerTensors(
-    std::vector<int64_t> input_shape, double* input_data,
-    std::vector<int64_t> output_shape, double* output_data
-){
-    input_shape_ = input_shape;
-    output_shape_ = output_shape;
-
-    input_data_ = input_data;
-    output_data_ = output_data;
-
-    distributor_ = std::make_unique<RoundRobinDistribution>();
-
-    initInferenceStrategy();
-}
-*/
 
 template<typename T>
 void AIxeleratorService<T>::inference()
 {
-    switch( inference_mode_ )
+    if( communicator_ )
     {
-        case AIX_HYBRID:
-        {
-            communicator_->gatherInputData();
+        communicator_->gatherInputData();
+    }
 
-            if ( distributor_->isGPUController() && input_shape_device_[0] > 0 )
-            {
-                inferencing_device_->inference();
-            }
-            if ( input_shape_host_[0] > 0)
-            {
-                inferencing_host_->inference();
-            }
+    if ( distributor_->isGPUController() && input_shape_device_[0] > 0)
+    {
+        inferencing_device_->inference();
+    }
 
-            communicator_->scatterOutputData(); 
-            break;
-        }
-        case AIX_GPU:
-        {
-            communicator_->gatherInputData();
+    if( input_shape_host_[0] > 0 )
+    {
+        inferencing_host_->inference();
+    }
 
-            if ( distributor_->isGPUController() )
-            {
-                inferencing_->inference();
-            }
-
-            communicator_->scatterOutputData(); 
-            break;
-        }
-        case AIX_CPU:
-        {
-            inferencing_->inference();
-            break;
-        }
-        default:
-        {
-            std::cerr << "ERROR: unsupported inference mode for AIxeleratorService::inference() --> supported modes are: AIX_CPU, AIX_GPU, AIX_HYBRID" << std::endl;
-            break;
-        }
+    if( communicator_ )
+    {
+        communicator_->scatterOutputData();
     }
 }
 
