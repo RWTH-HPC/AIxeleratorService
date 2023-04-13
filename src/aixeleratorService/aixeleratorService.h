@@ -15,13 +15,6 @@ typedef enum AIFramework
     AIX_UNKNOWN
 } AIFramework;
 
-typedef enum InferenceMode
-{
-    AIX_CPU = 1,
-    AIX_GPU = 2,
-    AIX_HYBRID = 3 // NYI
-} InferenceMode;
-
 template<typename T>
 class AIxeleratorService
 {

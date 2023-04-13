@@ -47,9 +47,6 @@ AIxeleratorService<T>::AIxeleratorService(
     int num_devices_total = distributor_->getNumDevicesTotal();
     if (num_devices_total > 0)
     {
-        inference_mode_ = AIX_HYBRID;
-        //inference_mode_ = AIX_GPU; // TODO(fabian): add flag to switch between GPU and HYBRID inference or pass inference mode as parameter to constructor?
-
         communicator_ = std::make_unique<CollectiveCommunication<T>>( 
             input_shape, input_data, 
             output_shape, output_data, 
@@ -65,7 +62,6 @@ AIxeleratorService<T>::AIxeleratorService(
     }
     else
     {
-        inference_mode_ = AIX_CPU;
         communicator_ = nullptr;
         batchsize_ = std::min<int>(batchsize_, input_shape_[0]); // TODO(fabian): is that the right place to check it?
 
