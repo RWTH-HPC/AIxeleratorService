@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
     std::cout << "MPI Rank " << my_rank << ": registering input tensor for AIxeleratorService = (" << input[0] << ", " << input[1] << ", " << input[2] << ", " << input[3] << ")" << std::endl;
 
-    AIxeleratorService<float> aixelerator(
+    AIxeleratorService<double> aixelerator(
         model_file, 
         input_shape, input.data(), 
         output_shape, output.data(),
