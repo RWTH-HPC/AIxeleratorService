@@ -41,13 +41,13 @@ use iso_c_binding, only: C_ptr
     device_id = 0
 
     write(*,*) "Creating Torch Inference object in Fortran now!"
-    torch_obj = C_createTorchInference()
+    torch_obj = C_createTorchInferenceDouble()
 
     write(*,*) "Init Torch Inference object in Fortran now!"
-    call C_initTorchInference(torch_obj, batchsize, device_id, model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data)
+    call C_initTorchInferenceDouble(torch_obj, batchsize, device_id, model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data)
 
     write(*,*) "Torch Inference Test inference in Fortran now!"
-    call C_forwardTorchInference(torch_obj)
+    call C_forwardTorchInferenceDouble(torch_obj)
 
     tensor_val_fmt = 'F6.3'
     tensor_format = '(A1,' // tensor_val_fmt // ',A2,' // tensor_val_fmt // ',A7,' // tensor_val_fmt // ',A2,' // tensor_val_fmt // ',A1)'
@@ -58,7 +58,7 @@ use iso_c_binding, only: C_ptr
     write(*,tensor_format) "(", input_data(7), ", ", input_data(8), ") --> (", output_data(7), ", ", output_data(8), ")"
 
     write(*,*) "Deleting Torch Inference object in Fortran now!"
-    call C_deleteTorchInference(torch_obj)
+    call C_deleteTorchInferenceDouble(torch_obj)
 
     write(*,*) "Torch Inference Test in Fortran completed!"
 

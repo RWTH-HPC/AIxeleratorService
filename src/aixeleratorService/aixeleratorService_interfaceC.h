@@ -8,14 +8,25 @@ extern "C" {
 #endif
 
     typedef void* AIxeleratorServiceHandle;
-    AIxeleratorServiceHandle createAIxeleratorService(
+    AIxeleratorServiceHandle createAIxeleratorServiceDouble(
         char* model_file,
         int64_t* input_shape, int num_input_dims, double* input_data,
         int64_t* output_shape, int num_output_dims, double* output_data,
         int batchsize
     );
-    void deleteAIxeleratorService(AIxeleratorServiceHandle aixelerator);
-    void inferenceAIxeleratorService(AIxeleratorServiceHandle aixelerator);
+    AIxeleratorServiceHandle createAIxeleratorServiceFloat(
+        char* model_file,
+        int64_t* input_shape, int num_input_dims, float* input_data,
+        int64_t* output_shape, int num_output_dims, float* output_data,
+        int batchsize
+    );
+
+    void deleteAIxeleratorServiceDouble(AIxeleratorServiceHandle aixelerator);
+    void deleteAIxeleratorServiceFloat(AIxeleratorServiceHandle aixelerator);
+    
+    void inferenceAIxeleratorServiceDouble(AIxeleratorServiceHandle aixelerator);
+    void inferenceAIxeleratorServiceFloat(AIxeleratorServiceHandle aixelerator);
+
 
 #ifdef __cplusplus
 }

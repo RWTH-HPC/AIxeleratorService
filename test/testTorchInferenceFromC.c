@@ -31,13 +31,13 @@ int main( int argc, char *argv[] )
     char model_file[] = "../models/torchModels/flexMLP-2x100x100x2.pt";
 
     printf("Creating Torch Inference object now!\n");
-    TorchInferenceHandle myTorch = createTorchInference();
+    TorchInferenceHandle myTorch = createTorchInferenceDouble();
 
     printf("Init Torch Inference object now!\n");
-    initTorchInference(myTorch, batch_size, device_id, model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data);
+    initTorchInferenceDouble(myTorch, batch_size, device_id, model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data);
     
     printf("Torch Inference Test inference now!\n");
-    forwardTorchInference(myTorch);
+    forwardTorchInferenceDouble(myTorch);
 
     printf("(%g, %g) --> (%g, %g)\n", input_data[0], input_data[1], output_data[0], output_data[1]);
     printf("(%g, %g) --> (%g, %g)\n", input_data[2], input_data[3], output_data[2], output_data[3]);
@@ -45,7 +45,7 @@ int main( int argc, char *argv[] )
     printf("(%g, %g) --> (%g, %g)\n", input_data[4], input_data[7], output_data[6], output_data[7]);
 
     printf("Deleting Torch Inference object now!\n");
-    deleteTorchInference(myTorch);
+    deleteTorchInferenceDouble(myTorch);
 
     printf("Torch Inference Test completed!\n");
 

@@ -40,15 +40,15 @@ int main( int argc, char *argv[] )
 
     printf("Creating AIxeleratorService object from C now!\n");
     printf("MPI Rank %d: registering input tensor for AIxeleratorService = (%g, %g)\n", my_rank, input_data[0], input_data[1]);
-    AIxeleratorServiceHandle aixelerator = createAIxeleratorService(model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data, batch_size);
+    AIxeleratorServiceHandle aixelerator = createAIxeleratorServiceDouble(model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data, batch_size);
     
     printf("MPI Rank %d: calling AIxeleratorService inference from C now!\n", my_rank);
-    inferenceAIxeleratorService(aixelerator);
+    inferenceAIxeleratorServiceDouble(aixelerator);
 
     printf("MPI Rank %d: received output from AIxeleratorService from C = (%g, %g)\n", my_rank, output_data[0], output_data[1]);
 
     printf("MPI Rank %d: Deleting AIxeleratorService object from C now!\n", my_rank);
-    deleteAIxeleratorService(aixelerator);
+    deleteAIxeleratorServiceDouble(aixelerator);
 
     MPI_Finalize();
 
