@@ -53,7 +53,6 @@ class AIxeleratorService
         T* output_data_device_;
         int batchsize_; // TODO: remove this
         AIFramework framework_;
-        InferenceMode inference_mode_;
 
         std::unique_ptr<DistributionStrategy> distributor_;
         std::unique_ptr<CommunicationStrategy<T>> communicator_;
