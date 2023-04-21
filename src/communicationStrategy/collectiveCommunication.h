@@ -30,6 +30,7 @@ class CollectiveCommunication : public CommunicationStrategy<T>
         int workgroup_size_;
 
         MPI_Comm work_group_comm_;
+        MPI_Datatype dtype_;
         T* input_data_worker_;
 
         int input_sendcount_;

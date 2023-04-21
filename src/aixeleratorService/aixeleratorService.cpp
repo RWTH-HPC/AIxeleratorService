@@ -2,6 +2,7 @@
 
 #include "distributionStrategy/roundRobinDistribution.h"
 #include "communicationStrategy/collectiveCommunication.h"
+#include "communicationStrategy/nonBlockingPtoPCommunication.h"
 
 #ifdef WITH_TORCH
 #include "inferenceStrategy/torchInference/torchInference.h"
@@ -47,10 +48,19 @@ AIxeleratorService<T>::AIxeleratorService(
     int num_devices_total = distributor_->getNumDevicesTotal();
     if (num_devices_total > 0)
     {
+        /*
         communicator_ = std::make_unique<CollectiveCommunication<T>>( 
             input_shape, input_data, 
             output_shape, output_data, 
             distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator()) 
+        );
+        */
+
+        communicator_ = std::make_unique<NonBlockingPtoPCommunication<T>>( 
+            input_shape, input_data, 
+            output_shape, output_data, 
+            0, 
+            *(distributor_->getWorkGroupCommunicator()) 
         );
 
         if (distributor_->isGPUController() )
@@ -353,10 +363,20 @@ void AIxeleratorService<T>::initInferenceStrategy(std::pair<int64_t, int64_t> be
     communicator_.reset();
     if (distributor_->getNumDevicesTotal() > 0)
     {
+        /*
         communicator_ = std::make_unique<CollectiveCommunication<T>>(
             input_shape_device_, input_data_device_, 
             output_shape_device_, output_data_device_, 
-            distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator())
+            distributor_->isGPUController(), 
+            *(distributor_->getWorkGroupCommunicator())
+        );
+        */
+
+        communicator_ = std::make_unique<NonBlockingPtoPCommunication<T>>(
+            input_shape_device_, input_data_device_, 
+            output_shape_device_, output_data_device_, 
+            0, 
+            *(distributor_->getWorkGroupCommunicator())
         );
     }
 
@@ -386,21 +406,25 @@ void AIxeleratorService<T>::initInferenceStrategy(std::pair<int64_t, int64_t> be
 template<typename T>
 void AIxeleratorService<T>::inference()
 {
+    std::cout << "AIxeleratorService: gathering input data" << std::endl;
     if( communicator_ )
     {
         communicator_->gatherInputData();
     }
 
+    std::cout << "AIxeleratorService: inference on device" << std::endl;
     if ( distributor_->isGPUController() && input_shape_device_[0] > 0)
     {
         inferencing_device_->inference();
     }
 
+    std::cout << "AIxeleratorService: inference on host" << std::endl;
     if( input_shape_host_[0] > 0 )
     {
         inferencing_host_->inference();
     }
 
+    std::cout << "AIxeleratorService: scattering output data" << std::endl;
     if( communicator_ )
     {
         communicator_->scatterOutputData();

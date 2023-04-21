@@ -1,5 +1,6 @@
 #include "distributionStrategy/roundRobinDistribution.h"
 #include "communicationStrategy/collectiveCommunication.h"
+#include "communicationStrategy/nonBlockingPtoPCommunication.h"
 
 #include <iostream>
 #include <vector>
@@ -22,7 +23,21 @@ int main(int argc, char *argv[])
     std::vector<double> output = { -13.37, -13.37 };
 
     RoundRobinDistribution distributor;
-    CollectiveCommunication communicator(input_shape, input.data(), output_shape, output.data(), distributor.isGPUController(), *(distributor.getWorkGroupCommunicator()));
+    /*
+    CollectiveCommunication<double> communicator(
+        input_shape, input.data(), 
+        output_shape, output.data(), 
+        distributor.isGPUController(), 
+        *(distributor.getWorkGroupCommunicator())
+    );
+    */
+
+    NonBlockingPtoPCommunication<double> communicator(
+        input_shape, input.data(),
+        output_shape, output.data(),
+        0,
+        *(distributor.getWorkGroupCommunicator())
+    );
 
     std::cout << "Worker " << my_rank << " sends input: ";
     for (int j = 0; j < input.size(); j++)

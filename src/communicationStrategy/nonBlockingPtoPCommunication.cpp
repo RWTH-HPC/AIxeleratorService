@@ -1,8 +1,7 @@
-#include "communicationStrategy/collectiveCommunication.h"
+#include "communicationStrategy/nonBlockingPtoPCommunication.h"
 
-#include <iostream>
 #include <numeric>
-
+#include <iostream>
 
 template<typename T>
 MPI_Datatype getTypeFromTemplate()
@@ -24,16 +23,18 @@ MPI_Datatype getTypeFromTemplate()
 
 
 template<typename T>
-CollectiveCommunication<T>::CollectiveCommunication(
+NonBlockingPtoPCommunication<T>::NonBlockingPtoPCommunication(
     std::vector<int64_t> input_shape, T* input_data, 
     std::vector<int64_t> output_shape, T* output_data, 
-    bool is_device_controller, MPI_Comm work_group_comm)
-{
-
-    is_device_controller_ = is_device_controller;
+    int device_controller_rank, MPI_Comm work_group_comm
+){
+    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank_);
+    device_controller_rank_ = device_controller_rank;
     work_group_comm_ = work_group_comm;
-    dtype_ = getTypeFromTemplate<T>();
+    MPI_Comm_rank(work_group_comm_, &my_workgroup_rank_);
+    is_device_controller_ = (my_workgroup_rank_ == device_controller_rank_);
     MPI_Comm_size(work_group_comm_, &workgroup_size_);
+    dtype_ = getTypeFromTemplate<T>();
 
     int input_sendcount = std::accumulate(input_shape.begin(), input_shape.end(), 1, std::multiplies<int>());
     int output_sendcount = std::accumulate(output_shape.begin(), output_shape.end(), 1, std::multiplies<int>());
@@ -69,7 +70,7 @@ CollectiveCommunication<T>::CollectiveCommunication(
     
     MPI_Gather(&input_sendcount_, 1, MPI_INT, input_recvcounts_.data(), 1, MPI_INT, 0, work_group_comm_);
     MPI_Gather(&output_sendcount_, 1, MPI_INT, output_recvcounts_.data(), 1, MPI_INT, 0, work_group_comm_);
-    
+
     if( is_device_controller_ )
     {
         input_displs_[0] = 0;
@@ -85,11 +86,16 @@ CollectiveCommunication<T>::CollectiveCommunication(
 
         this->input_data_controller_ = new T[this->total_input_count_];
         this->output_data_controller_ = new T[this->total_output_count_];
+
+        input_requests_.resize(workgroup_size_);
+        output_requests_.resize(workgroup_size_);
+        input_statuses_.resize(workgroup_size_);
+        output_statuses_.resize(workgroup_size_);
     }
 }
 
 template<typename T>
-CollectiveCommunication<T>::~CollectiveCommunication()
+NonBlockingPtoPCommunication<T>::~NonBlockingPtoPCommunication()
 {
     if( is_device_controller_ )
     {
@@ -99,31 +105,57 @@ CollectiveCommunication<T>::~CollectiveCommunication()
 }
 
 template<typename T>
-void CollectiveCommunication<T>::setInputData(int input_sendcount, T* input_data)
+void NonBlockingPtoPCommunication<T>::setInputData(int input_sendcount, T* input_data)
 {
     input_sendcount_ = input_sendcount;
     input_data_worker_ = input_data;
 }
 
 template<typename T>
-void CollectiveCommunication<T>::setOutputData(int output_sendcount, T* output_data)
+void NonBlockingPtoPCommunication<T>::setOutputData(int output_sendcount, T* output_data)
 {
     output_sendcount_ = output_sendcount;
     output_data_worker_ = output_data;
 }
 
 template<typename T>
-void CollectiveCommunication<T>::gatherInputData()
+void NonBlockingPtoPCommunication<T>::gatherInputData()
 {
-    MPI_Gatherv(input_data_worker_, input_sendcount_, dtype_, this->input_data_controller_, input_recvcounts_.data(), input_displs_.data(), dtype_, 0, work_group_comm_);
+    if( is_device_controller_ )
+    {     
+        for(int i = 0; i < workgroup_size_; i++)
+        {
+            int offset = input_displs_[i];
+            int recv_count = input_recvcounts_[i];
+            MPI_Irecv(&(this->input_data_controller_[offset]), recv_count, dtype_, i, i, work_group_comm_, &input_requests_[i]);
+        }
+    }
+
+    MPI_Isend(input_data_worker_, input_sendcount_, dtype_, device_controller_rank_, my_workgroup_rank_, work_group_comm_, &send_req_);
+
+    if( is_device_controller_ )
+    {
+        MPI_Waitall(workgroup_size_, input_requests_.data(), input_statuses_.data());
+    }
 }
 
 template<typename T>
-void CollectiveCommunication<T>::scatterOutputData()
+void NonBlockingPtoPCommunication<T>::scatterOutputData()
 {
-    MPI_Scatterv(this->output_data_controller_, output_recvcounts_.data(), output_displs_.data(), dtype_, output_data_worker_, output_sendcount_, dtype_, 0, work_group_comm_);
+    MPI_Irecv(output_data_worker_, output_sendcount_, dtype_, device_controller_rank_, my_workgroup_rank_, work_group_comm_, &recv_req_);
+
+    if ( is_device_controller_ )
+    {
+        for(int i = 0; i < workgroup_size_; i++)
+        {
+            int offset = output_displs_[i];
+            int send_count = output_recvcounts_[i];
+            MPI_Isend(&(this->output_data_controller_[offset]), send_count, dtype_, i, i, work_group_comm_, &output_requests_[i]);
+        }  
+    }
+
+    MPI_Wait(&recv_req_, &recv_status_);
 }
 
-
-template class CollectiveCommunication<float>;
-template class CollectiveCommunication<double>;
+template class NonBlockingPtoPCommunication<float>;
+template class NonBlockingPtoPCommunication<double>;

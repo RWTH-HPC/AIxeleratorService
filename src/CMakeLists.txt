@@ -1,10 +1,15 @@
 add_library(AIxeleratorServiceLib SHARED)
 set_target_properties(AIxeleratorServiceLib PROPERTIES OUTPUT_NAME AIxeleratorService)
 target_sources(
-    AIxeleratorServiceLib PRIVATE 
-        distributionStrategy/roundRobinDistribution.cpp  
-        communicationStrategy/collectiveCommunication.cpp
-        aixeleratorService/aixeleratorService.cpp
+    AIxeleratorServiceLib 
+        PRIVATE 
+            distributionStrategy/roundRobinDistribution.cpp  
+            communicationStrategy/collectiveCommunication.cpp
+            communicationStrategy/nonBlockingPtoPCommunication.cpp
+            aixeleratorService/aixeleratorService.cpp
+            aixeleratorService/aixeleratorService_interfaceC.cpp
+        PUBLIC
+            aixeleratorService/aixeleratorService_interfaceF.f90
 )
 
 target_include_directories(
@@ -43,11 +48,25 @@ endif()
 set_target_properties(
     AIxeleratorServiceLib 
     PROPERTIES 
-        PUBLIC_HEADER 
-            "aixeleratorService/aixeleratorService.h;aixeleratorService/aixeleratorService_interfaceC.h"
+    #    PUBLIC_HEADER 
+    #        "aixeleratorService/aixeleratorService.h;aixeleratorService/#aixeleratorService_interfaceC.h;aixeleratorService/#aixeleratorService_interfaceF.f90"
+        LINKER_LANGUAGE Fortran
 )
+
 install(
     TARGETS AIxeleratorServiceLib
     LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/lib
-    PUBLIC_HEADER DESTINATION ${CMAKE_BINARY_DIR}/include
+    #PUBLIC_HEADER DESTINATION ${CMAKE_BINARY_DIR}/include
+)
+
+install(
+    DIRECTORY "${CMAKE_SOURCE_DIR}/src/"
+    DESTINATION "${CMAKE_BINARY_DIR}/include"
+    FILES_MATCHING 
+        PATTERN "*.h"
+)
+
+install(
+    FILES ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceF.f90
+    DESTINATION "${CMAKE_BINARY_DIR}/include/aixeleratorService"
 )

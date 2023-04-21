@@ -4,6 +4,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 project(AIxeleratorService VERSION 0.01 LANGUAGES CXX C Fortran)
 
+include(FortranCInterface)
+FortranCInterface_VERIFY(CXX)
+
 # CMP0074: find_package() uses <PackageName>_ROOT variables.
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
@@ -78,3 +81,4 @@ add_subdirectory(src)
 if(BUILD_TESTS)
   add_subdirectory(test)
 endif()
+

@@ -29,7 +29,7 @@ variables:
     SLURM_PARAM_ACCOUNT: "--account=rwth0792"
     SLURM_PARAM_PARTITION: "--partition=c18g"
     SLURM_PARAM_GPUS: "--gres=gpu:volta:2"
-    SLURM_PARAM_TIME: "--time=00:15:00"
+    SLURM_PARAM_TIME: "--time=00:30:00"
     CI_MODE: "SingleSlurmJobAcrossStages"
   before_script:
     - module purge
