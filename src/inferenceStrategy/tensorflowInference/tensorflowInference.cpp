@@ -72,8 +72,8 @@ void TensorflowInference<T>::initSession()
         device_count->insert({"CPU", 1});
         device_count->insert({"GPU", 0});
 
-        config.set_intra_op_parallelism_threads(1);
-        config.set_inter_op_parallelism_threads(1);
+        config.set_intra_op_parallelism_threads(0);
+        config.set_inter_op_parallelism_threads(0);
     }
     std::string serialized_config;
     if(!config.SerializeToString(&serialized_config))
