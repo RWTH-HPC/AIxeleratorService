@@ -36,14 +36,14 @@ If you are missing any feature to couple your application with this library, ple
 The AIxelerator Service has the following dependencies (tested with version):
 * Cmake 3.16.3 or later (3.21.1)
 * Compilers
-    * C/C++ compiler (Intel 19 + GCC 8 or GCC 10.3.0)
-    * Fortran compiler (Intel 19)
-* MPI (Intel MPI 2018)
+    * C/C++ compiler (Intel 19 + GCC 8 or GCC 10.3.0 or Intel 2021.6.0)
+    * Fortran compiler (Intel 19 or Intel 2021.6.0)
+* MPI (Intel MPI 2018 or Intel MPI 2021.6)
 * CUDA (11.4)
 * CUDNN (8.3.2)
 * ML/DL frameworks:
     * Torch (1.10.0)
-    * TensorFlow (2.6.0)
+    * TensorFlow (2.6.0 or 2.10.0)
     * SOL4VE (0.4.2.1)
 
 The AIxeleratorService has a modular design that allows to individually decide which ML/DL framework backend for the inference task should be built.
