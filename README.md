@@ -127,6 +127,3 @@ call inferenceAIxeleratorService_C(aixelerator)
 
 call deleteAIxeleratorService_C(aixelerator)
 ```
-
-
-cmake -DWITH_TORCH=OFF -DWITH_TENSORFLOW=ON -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.11.0 -DTensorflow_Python_DIR=/home/fo014819/anaconda3/envs/CIAO-tensorflow/lib/python3.7/site-packages/tensorflow  ..
