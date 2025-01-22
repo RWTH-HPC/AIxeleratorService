@@ -1,0 +1,259 @@
+# This file is a template, and might need editing before it works on your project.
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# This specific template is located at:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+
+# This is a sample GitLab CI/CD configuration file that should run without any modifications.
+# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
+# it uses echo commands to simulate the pipeline execution.
+#
+# A pipeline is composed of independent jobs that run scripts, grouped into stages.
+# Stages run in sequential order, but jobs within stages run in parallel.
+#
+# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
+
+stages:          # List of stages for jobs, and their order of execution
+  - build
+  - test
+
+default:
+  tags: ["downscope2"]
+  #tags: ["testing"]
+
+variables:
+  GIT_STRATEGY: clone
+
+.shared-sequential-job:
+  variables:
+    SLURM_PARAM_CPUS: "-c 96"
+    SLURM_PARAM_ACCOUNT: "--account=rwth0792"
+    SLURM_PARAM_PARTITION: "--partition=c23g"
+    #SLURM_PARAM_GPUS: "--gres=gpu:volta:2"
+    SLURM_PARAM_GPUS: "--gpus-per-node=4"
+    SLURM_PARAM_TIME: "--time=00:30:00"
+    CI_MODE: "SingleSlurmJobAcrossStages"
+  before_script:
+    - module purge
+    - module load intel/2022a
+    - module load CUDA/11.3.1
+    - module load cuDNN/8.2.1.32-CUDA-11.3.1
+    - module load CMake/3.21.1
+    - module load Python/3.10.4
+
+shared-build-job:
+  stage: build
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Building on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${CI_BUILDS_DIR}
+    #- pip install tensorflow==2.10.0
+    - pip show tensorflow
+    - python3 -c "import tensorflow as tf; print(tf.__version__)"
+    - cp -r ./models ${TMP}/models
+    - rm -rf BUILD
+    - mkdir ${TMP}/BUILD
+    - Torch_DIR=/home/rwth0792/AI-Frameworks/torch/libtorch-1.10.0-cuda-11.3/ cmake -B ${TMP}/BUILD -S ${PWD} -DTensorflow_DIR=/home/rwth0792/AI-Frameworks/libtensorflow-gpu-linux-x86_64-2.6.0 -DTensorflow_Python_DIR=/rwthfs/rz/cluster/home/serv0003/.local/lib/python3.10/site-packages/tensorflow -DWITH_TORCH=ON -DWITH_TENSORFLOW=ON
+    - cd ${TMP}/BUILD
+    - cmake --build . -j 8
+    - echo ${PWD}
+  variables:
+    SLURM_PARAM_EXCLUSIVE: "--exclusive"
+    SLURM_PARAM_MEMORY: "--mem=0"
+
+shared-torch-inference-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - ls ${PWD}
+    - echo ${CI_BUILDS_DIR}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - ./test/testTorchInference.cpp.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 1"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+
+shared-tensorflow-inference-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - ./test/testTensorflowInference.cpp.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 1"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-torch-inference-test-job"]
+
+shared-round-robin-distribution-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - echo ${FLAGS_MPI_BATCH}
+    - mpiexec.hydra -np 4 ./test/testRoundRobinDistribution.cpp.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 4"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-tensorflow-inference-test-job"]
+
+shared-aixelerator-service-Torch-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - echo ${FLAGS_MPI_BATCH}
+    - mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x ../models/torchModels/flexMLP-2x100x100x2.pt
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 4"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-round-robin-distribution-test-job"]
+
+shared-aixelerator-service-TF-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - echo ${FLAGS_MPI_BATCH}
+    - mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x ../models/tensorflowModels/flexMLP-2x100x100x2.tf
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 4"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-aixelerator-service-Torch-test-job"]
+
+shared-aixelerator-service-CPU-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - echo ${FLAGS_MPI_BATCH}
+    - CUDA_VISIBLE_DEVICES="" mpiexec.hydra -np 4 ./test/testAIxeleratorService.cpp.x ../models/torchModels/flexMLP-2x100x100x2.pt
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 4"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-aixelerator-service-TF-test-job"]
+
+shared-torch-inference-C-interface-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - ./test/testTorchInference_interfaceC.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 1"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-aixelerator-service-CPU-test-job"]
+
+shared-torch-inference-F-interface-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - ./test/testTorchInference_interfaceF.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 1"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-torch-inference-C-interface-test-job"]
+
+shared-aixelerator-service-C-interface-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - CUDA_VISIBLE_DEVICES=0 mpiexec.hydra -np 4 ./test/testAIxeleratorService_interfaceC.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 1"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-torch-inference-F-interface-test-job"]
+
+shared-aixelerator-service-F-interface-test-job:
+  stage: test
+  extends: .shared-sequential-job
+  script:
+    - echo "JOBID ${SLURM_JOB_ID}"
+    - echo "Testing on $(hostname) into $TMP"
+    - echo ${PWD}
+    - echo ${TMP}
+    - cd ${TMP}/BUILD
+    - CUDA_VISIBLE_DEVICES=0 mpiexec.hydra -np 4 ./test/testAIxeleratorService_interfaceF.x
+  variables:
+    GIT_STRATEGY: none
+    SLURM_PARAM_CPUS: "-n 1 -c 1"
+    SLURM_PARAM_GPUS: "--gpus=1"
+    #SLURM_PARAM_OVERLAP: "--oversubscribe"
+    #SLURM_PARAM_MEMORY_CPU: "--mem-per-cpu=10G"
+    #SLURM_PARAM_MEMORY_GPU: "--mem-per-gpu=1G"
+  needs: ["shared-aixelerator-service-C-interface-test-job"]

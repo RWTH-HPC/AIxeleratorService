@@ -1,0 +1,1 @@
+`FindScorep.cmake` taken from https://git-ce.rwth-aachen.de/hermanns/score-p-cmake-module.
