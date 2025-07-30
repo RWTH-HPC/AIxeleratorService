@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 add_compile_options("-D_GLIBCXX_USE_CXX11_ABI=1")
 add_compile_options("-g")
 
+include(FetchContent)
+
 include(FortranCInterface)
 FortranCInterface_VERIFY(CXX)
 
@@ -24,9 +26,52 @@ option(BUILD_TESTS "Build tests" ON)
 # Options for AI-Frameworks
 option(WITH_TORCH "Build with support for Torch backend" OFF)
 option(WITH_TENSORFLOW "Build with support for Tensorflow backend" OFF)
+set(TENSORFLOW_VERSION "2.17.0" CACHE STRING "Version of TensorFlow to use.")
 option(WITH_SOL "Build with support for NEC SOL backend" OFF)
 option(WITH_ONNX "Build with support for ONNX backend" OFF)
 option(WITH_SCOREP "Build with Score-P instrumentation for profiling/tracing" OFF)
+
+# creation of virtual environment
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+set(AIX_VENV_DIR "${CMAKE_BINARY_DIR}/extern/venv-py${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}${Python3_VERSION_PATCH}")
+# check if the environment already exists
+if(NOT EXISTS "${AIX_VENV_DIR}/bin/activate")
+  message(STATUS "No existing Python virtual environment found! Installing now!")
+  execute_process(
+    COMMAND ${Python3_EXECUTABLE} -m venv ${AIX_VENV_DIR}
+    RESULT_VARIABLE VENV_RESULT
+    COMMAND_ECHO STDOUT
+  )
+  if(NOT VENV_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to create Python virtual environment! Error code: ${VENV_RESULT}")
+  endif()
+
+  # install required packages
+  if(WITH_TENSORFLOW)
+    execute_process(
+      COMMAND ${AIX_VENV_DIR}/bin/pip install tensorflow==${TENSORFLOW_VERSION}
+      RESULT_VARIABLE TF_RESULT
+      COMMAND_ECHO STDOUT
+    )
+    if(NOT TF_RESULT EQUAL 0)
+      message(FATAL_ERROR "Failed to pip install TensorFlow! Error code: ${TF_RESULT}")
+
+    endif()
+
+    execute_process(
+      COMMAND ${AIX_VENV_DIR}/bin/pip install tf-keras==${TENSORFLOW_VERSION}
+      RESULT_VARIABLE TF_KERAS_RESULT
+      COMMAND_ECHO STDOUT
+    )
+    if(NOT TF_KERAS_RESULT EQUAL 0)
+      message(FATAL_ERROR "Failed to pip install tf-keras! Error code: ${TF_KERAS_RESULT}")
+    endif()
+  endif()
+
+else()
+  message(STATUS "Found existing Python virtual environment: ${AIX_VENV_DIR}")
+endif()
+###################### END CREATION OF VIRTUAL ENVIRONMENT ######################
 
 # add error check if no AI framework is activated
 if((NOT ${WITH_TORCH} AND NOT ${WITH_TENSORFLOW}) AND NOT ${WITH_SOL} AND NOT ${WITH_ONNX})
@@ -63,17 +108,25 @@ if(WITH_TENSORFLOW)
   add_compile_options("-DWITH_TENSORFLOW")
   # only needed for newer versions of TF (e.g. 2.11 but maybe also lower)
   # simulate a findTensorflow.cmake
-  # Tensorflow_DIR needs to be passed to CMAKE configure
+
+  set(Tensorflow_DIR "${CMAKE_BINARY_DIR}/extern/tensorflow")
   message(STATUS "Tensorflow_DIR = ${Tensorflow_DIR}")
-  set(TENSORFLOW_PROTOBUF_INCLUDE ${Tensorflow_Python_DIR}/include/)
+
+  # download TensorFlow
+  FetchContent_Declare(
+    TensorFlowDownload
+    URL "https://storage.googleapis.com/tensorflow/versions/${TENSORFLOW_VERSION}/libtensorflow-gpu-linux-x86_64.tar.gz"
+    SOURCE_DIR "${Tensorflow_DIR}"
+  )
+  FetchContent_MakeAvailable(TensorFlowDownload)
+
+  set(TENSORFLOW_PROTOBUF_INCLUDE "${AIX_VENV_DIR}/lib/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages/tensorflow/include/")
+
   set(TENSORFLOW_INCLUDE_DIRS ${Tensorflow_DIR}/include ${TENSORFLOW_PROTOBUF_INCLUDE})
   message(STATUS "TENSORFLOW_INCLUDE_DIRS = ${TENSORFLOW_INCLUDE_DIRS}")
   set(TENSORFLOW_LIB_DIR ${Tensorflow_DIR}/lib)
   message(STATUS "TENSORFLOW_LIB_DIR = ${TENSORFLOW_LIB_DIR}")
   set(TENSORFLOW_LIBRARIES ${TENSORFLOW_LIB_DIR}/libtensorflow.so ${TENSORFLOW_LIB_DIR}/libtensorflow_framework.so)
-  #/cvmfs/software.hpc.rwth.de/Linux/RH8/x86_64/intel/skylake_avx512/software/protobuf/3.19.4-GCCcore-11.3.0/lib64/libprotobuf.so
-  #set(TENSORFLOW_LIBRARIES /home/rwth0792/AI-Frameworks/libtensorflow-cpu-linux-x86_64-2.10.0-CUSTOM/lib/libtensorflow_cc.so ${TENSORFLOW_LIB_DIR}/libtensorflow_framework.so)
-
   message(STATUS "TENSORFLOW_LIBRARIES = ${TENSORFLOW_LIBRARIES}")
 endif()
 

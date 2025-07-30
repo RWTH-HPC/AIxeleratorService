@@ -14,12 +14,12 @@ target_sources(
 
 target_include_directories(
     AIxeleratorServiceLib
-    PUBLIC  ${CMAKE_SOURCE_DIR}/src/distributionStrategy
-            ${CMAKE_SOURCE_DIR}/src/communicationStrategy
-            ${CMAKE_SOURCE_DIR}/src/inferenceStrategy
-            ${CMAKE_SOURCE_DIR}/src/utils
+    PUBLIC  ${PROJECT_SOURCE_DIR}/src/distributionStrategy
+            ${PROJECT_SOURCE_DIR}/src/communicationStrategy
+            ${PROJECT_SOURCE_DIR}/src/inferenceStrategy
+            ${PROJECT_SOURCE_DIR}/src/utils
             ${MPI_INCLUDE_PATH}     
-            ${CMAKE_SOURCE_DIR}/src/
+            ${PROJECT_SOURCE_DIR}/src/
 )
 
 target_link_libraries(
@@ -76,13 +76,13 @@ install(
 )
 
 install(
-    DIRECTORY "${CMAKE_SOURCE_DIR}/src/"
+    DIRECTORY "${PROJECT_SOURCE_DIR}/src/"
     DESTINATION "${CMAKE_BINARY_DIR}/include"
     FILES_MATCHING 
         PATTERN "*.h"
 )
 
 install(
-    FILES ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceF.f90
+    FILES ${PROJECT_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceF.f90
     DESTINATION "${CMAKE_BINARY_DIR}/include/aixeleratorService"
 )
