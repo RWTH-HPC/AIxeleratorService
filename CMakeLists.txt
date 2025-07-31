@@ -10,6 +10,7 @@ include(FetchContent)
 
 include(FortranCInterface)
 FortranCInterface_VERIFY(CXX)
+set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
 # CMP0074: find_package() uses <PackageName>_ROOT variables.
 if(POLICY CMP0074)
@@ -117,6 +118,7 @@ if(WITH_TENSORFLOW)
     TensorFlowDownload
     URL "https://storage.googleapis.com/tensorflow/versions/${TENSORFLOW_VERSION}/libtensorflow-gpu-linux-x86_64.tar.gz"
     SOURCE_DIR "${Tensorflow_DIR}"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   )
   FetchContent_MakeAvailable(TensorFlowDownload)
 

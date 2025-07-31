@@ -69,20 +69,29 @@ set_target_properties(
         LINKER_LANGUAGE Fortran
 )
 
-install(
-    TARGETS AIxeleratorServiceLib
-    LIBRARY DESTINATION ${CMAKE_BINARY_DIR}/lib
-    #PUBLIC_HEADER DESTINATION ${CMAKE_BINARY_DIR}/include
-)
-
+# install headers
 install(
     DIRECTORY "${PROJECT_SOURCE_DIR}/src/"
-    DESTINATION "${CMAKE_BINARY_DIR}/include"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/include"
     FILES_MATCHING 
         PATTERN "*.h"
 )
 
+# TODO: check if required?
+# install(
+#     FILES ${PROJECT_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceF.f90
+#     DESTINATION "${CMAKE_BINARY_DIR}/include/aixeleratorService"
+# )
+
+# install Fortran module
 install(
-    FILES ${PROJECT_SOURCE_DIR}/src/aixeleratorService/aixeleratorService_interfaceF.f90
-    DESTINATION "${CMAKE_BINARY_DIR}/include/aixeleratorService"
+    FILES ${CMAKE_Fortran_MODULE_DIRECTORY}/aixelerator_service_mod.mod
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/include/aixeleratorService
+)
+
+# install shared library
+install(
+    TARGETS AIxeleratorServiceLib
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    #PUBLIC_HEADER DESTINATION ${CMAKE_BINARY_DIR}/include
 )
