@@ -24,7 +24,7 @@ target_include_directories(
 
 target_link_libraries(
     AIxeleratorServiceLib 
-    PRIVATE ${MPI_LIBRARIES}
+    PUBLIC ${MPI_LIBRARIES}
 )
 
 if(WITH_SCOREP)
@@ -37,7 +37,7 @@ endif()
 
 if(WITH_TORCH)
     target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/torchInference/torchInference.cpp)
-    target_include_directories(AIxeleratorServiceLib PRIVATE ${TORCH_INCLUDE_DIRS})
+    target_include_directories(AIxeleratorServiceLib PUBLIC ${TORCH_INCLUDE_DIRS})
     target_link_libraries(AIxeleratorServiceLib PUBLIC ${TORCH_LIBRARIES})
 endif()
 
@@ -45,19 +45,19 @@ if(WITH_TENSORFLOW)
     target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/tensorflowInference/tensorflowInference.cpp)
     #target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp)
 
-    target_include_directories(AIxeleratorServiceLib PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+    target_include_directories(AIxeleratorServiceLib PUBLIC ${TENSORFLOW_INCLUDE_DIRS})
     target_link_libraries(AIxeleratorServiceLib PUBLIC ${TENSORFLOW_LIBRARIES})
 endif()
 
 if(WITH_ONNX)
     target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/onnxInference/onnxInference.cpp)
-    target_include_directories(AIxeleratorServiceLib PRIVATE ${ONNX_INCLUDE_DIRS})
+    target_include_directories(AIxeleratorServiceLib PUBLIC ${ONNX_INCLUDE_DIRS})
     target_link_libraries(AIxeleratorServiceLib PUBLIC ${ONNX_LIBRARIES})
 endif()
 
 if(WITH_SOL)
     target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/solInference/solInference.cpp)
-    target_include_directories(AIxeleratorServiceLib PRIVATE ${VEDA_INCLUDE_DIRS})
+    target_include_directories(AIxeleratorServiceLib PUBLIC ${VEDA_INCLUDE_DIRS})
     target_link_libraries(AIxeleratorServiceLib PUBLIC ${VEDA_LIBRARIES})
 endif()
 
