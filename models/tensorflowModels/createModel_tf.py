@@ -40,7 +40,8 @@ def main():
     n_neurons = [int(x) for x in args.neurons]
 
     m = FlexMLP(n_inp, n_out, n_neurons)
-    m.save(args.model)
+    # m.save(args.model)
+    m.export(args.model)
    # m.summary()
 
     #for layer in m.layers: 

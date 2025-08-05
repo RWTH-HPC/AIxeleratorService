@@ -12,28 +12,29 @@ def main():
     model = models.Sequential()
     model.add(layers.Conv3D(num_filters, kernel_size, padding=padding, input_shape=(3, 3, 3, 1), name='myconv', use_bias=False))
     weights = model.get_layer('myconv').get_weights()
-    print(weights)
-    print(weights[0].shape)
+    #print(weights)
+    #print(weights[0].shape)
     kernel_weights = np.array([[1,2,3,4],[5,6,7,8]]).reshape((2,2,2,1,1))
     model.get_layer('myconv').set_weights([ kernel_weights ])
 
-    model.summary()
-    model.save("testConvolution3D.tf")
+    #model.summary()
+    # model.save("testConvolution3D.tf")
+    model.export("testConvolution3D.tf")
 
-    input_data = np.array([[
-        [[ 1, 2, 3], [ 4, 5, 6], [ 7, 8, 9]],
-        [[10,11,12], [13,14,15], [16,17,18]],
-        [[19,20,21], [22,23,24], [25,26,27]]
-    ]])
+    # input_data = np.array([[
+    #     [[ 1, 2, 3], [ 4, 5, 6], [ 7, 8, 9]],
+    #     [[10,11,12], [13,14,15], [16,17,18]],
+    #     [[19,20,21], [22,23,24], [25,26,27]]
+    # ]])
 
     #tf.profiler.experimental.start('tf-test-log')
     #with tf.profiler.experimental.Profile('tf-log-dir'):
     #with scorep.instrumenter.enable():
-    output_data = model(input_data)
+    #output_data = model(input_data)
     #tf.profiler.experimental.stop()
 
-    print(output_data)
-    print(model.get_weights())
+    #print(output_data)
+    #print(model.get_weights())
 
     #runOptions = tf.compat.v1.RunOptions(trace_level=tf.compat.v1.RunOptions.FULL_TRACE)
     #runConfig = tf.compat.v1.ConfigProto(run_options=runOptions)

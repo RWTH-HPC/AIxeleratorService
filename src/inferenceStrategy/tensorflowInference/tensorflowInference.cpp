@@ -126,9 +126,17 @@ void TensorflowInference<T>::initSession()
     // ############################################
     // try to find input/output names automagically
     // TODO(fabian): refactor into helper function!
+    int is_mpi_initialized = -1337;
     int grank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &grank);
-    std::string saved_model_cli_filename = "TF_saved_model_cli_output.tmp" + std::to_string(grank);
+    std::string saved_model_cli_filename;
+    MPI_Initialized(&is_mpi_initialized);
+    if(is_mpi_initialized){
+        MPI_Comm_rank(MPI_COMM_WORLD, &grank);
+        saved_model_cli_filename = "TF_saved_model_cli_output.tmp" + std::to_string(grank);
+    }
+    else{
+        saved_model_cli_filename = "TF_saved_model_cli_output.tmp";    
+    }
     std::string saved_model_cli_command = "saved_model_cli show --dir " + model_file_name_ + " --tag_set serve --signature_def serving_default >" + saved_model_cli_filename;
     std::cout << std::flush;
     int syserr = std::system(saved_model_cli_command.c_str());
