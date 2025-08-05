@@ -74,15 +74,16 @@ def main():
     s = torch.jit.script(m)
     s.save(args.model)
 
-    loaded_model = torch.jit.load('flexMLP-2x100x100x2.pt')
-    loaded_model.eval()
-    test_input = torch.tensor([[0.0, 0.0], [1.0, 1.0], [2.0, 2.0], [3.0, 3.0]], dtype=torch.float64)
-    test_output = loaded_model(test_input)
-    print(test_output)
+    # TODO: refactor into own script to test the model!
+    #loaded_model = torch.jit.load('flexMLP-2x100x100x2.pt')
+    #loaded_model.eval()
+    #test_input = torch.tensor([[0.0, 0.0], [1.0, 1.0], [2.0, 2.0], [3.0, 3.0]], dtype=torch.float64)
+    #test_output = loaded_model(test_input)
+    #print(test_output)
 
-    test_input = torch.tensor([[0.0, 1.0], [2.0, 3.0], [0.0, 1.0], [2.0, 3.0]], dtype=torch.float64)
-    test_output = loaded_model(test_input)
-    print(test_output)
+    #test_input = torch.tensor([[0.0, 1.0], [2.0, 3.0], [0.0, 1.0], [2.0, 3.0]], dtype=torch.float64)
+    #test_output = loaded_model(test_input)
+    #print(test_output)
 
 if __name__ == "__main__":
     main()

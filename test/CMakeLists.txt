@@ -13,6 +13,10 @@ if(WITH_TORCH)
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
         target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TORCH_LIBRARIES})
+        install(
+            TARGETS ${UNITTEST_NAME}.x
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+        )
     endforeach(TEST)
 endif()
 
@@ -21,7 +25,7 @@ if(WITH_TENSORFLOW)
     list(APPEND TENSORFLOW_TESTS "testTensorflowInference.cpp")
     foreach(TEST ${TENSORFLOW_TESTS})
         message(STATUS "Creating Tensorflow test ${TEST}")
-        message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
+        # message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
         get_filename_component(UNITTEST_NAME ${TEST} NAME)
         get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
         add_executable(${UNITTEST_NAME}.x ${TEST})
@@ -33,8 +37,12 @@ if(WITH_TENSORFLOW)
             #${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp
         )
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
-        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS} ${MPI_INCLUDE_PATH})
-        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES} ${MPI_LIBRARIES})
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE TensorFlow::tensorflow TensorFlow::framework ${MPI_LIBRARIES})
+        install(
+            TARGETS ${UNITTEST_NAME}.x
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+        )
     endforeach(TEST)
 endif()
 
@@ -42,7 +50,7 @@ if(WITH_TENSORFLOW)
     list(APPEND TENSORFLOW_TESTS_CONV2D "testTensorflowInferenceConvolution2D.cpp")
     foreach(TEST ${TENSORFLOW_TESTS_CONV2D})
         message(STATUS "Creating Tensorflow test ${TEST}")
-        message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
+        # message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
         get_filename_component(UNITTEST_NAME ${TEST} NAME)
         get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
         add_executable(${UNITTEST_NAME}.x ${TEST})
@@ -54,8 +62,12 @@ if(WITH_TENSORFLOW)
             #${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp
         )
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
-        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS} ${MPI_INCLUDE_PATH})
-        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES} ${MPI_LIBRARIES})
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE TensorFlow::tensorflow TensorFlow::framework ${MPI_LIBRARIES})
+        install(
+            TARGETS ${UNITTEST_NAME}.x
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+        )
     endforeach(TEST)
 endif()
 
@@ -63,7 +75,7 @@ if(WITH_TENSORFLOW)
     list(APPEND TENSORFLOW_TESTS_CONV3D "testTensorflowInferenceConvolution3D.cpp")
     foreach(TEST ${TENSORFLOW_TESTS_CONV3D})
         message(STATUS "Creating Tensorflow test ${TEST}")
-        message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
+        # message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
         get_filename_component(UNITTEST_NAME ${TEST} NAME)
         get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
         add_executable(${UNITTEST_NAME}.x ${TEST})
@@ -75,8 +87,12 @@ if(WITH_TENSORFLOW)
             #${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp
         )
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
-        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS} ${MPI_INCLUDE_PATH})
-        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES} ${MPI_LIBRARIES})
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE TensorFlow::tensorflow TensorFlow::framework ${MPI_LIBRARIES})
+        install(
+            TARGETS ${UNITTEST_NAME}.x
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+        )
     endforeach(TEST)
 endif()
 
@@ -84,7 +100,7 @@ if(WITH_TENSORFLOW)
     list(APPEND TENSORFLOW_TESTS_CONV3D_MULTICHANNEL "testTensorflowInferenceConvolution3D_multichannel.cpp")
     foreach(TEST ${TENSORFLOW_TESTS_CONV3D_MULTICHANNEL})
         message(STATUS "Creating Tensorflow test ${TEST}")
-        message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
+        # message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
         get_filename_component(UNITTEST_NAME ${TEST} NAME)
         get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
         add_executable(${UNITTEST_NAME}.x ${TEST})
@@ -96,8 +112,12 @@ if(WITH_TENSORFLOW)
             #${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp
         )
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
-        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS} ${MPI_INCLUDE_PATH})
-        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES} ${MPI_LIBRARIES})
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE TensorFlow::tensorflow TensorFlow::framework ${MPI_LIBRARIES})
+        install(
+            TARGETS ${UNITTEST_NAME}.x
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+        )
     endforeach(TEST)
 endif()
 
@@ -106,7 +126,7 @@ if(WITH_TENSORFLOW)
     list(APPEND TENSORFLOW_TESTS_TSRGAN "testTensorflowInferenceTSRGAN.cpp")
     foreach(TEST ${TENSORFLOW_TESTS_TSRGAN})
         message(STATUS "Creating Tensorflow test ${TEST}")
-        message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
+        # message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
         get_filename_component(UNITTEST_NAME ${TEST} NAME)
         get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
         add_executable(${UNITTEST_NAME}.x ${TEST})
@@ -118,8 +138,12 @@ if(WITH_TENSORFLOW)
             #${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp
         )
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
-        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS} ${MPI_INCLUDE_PATH})
-        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES} ${MPI_LIBRARIES})
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE TensorFlow::tensorflow TensorFlow::framework ${MPI_LIBRARIES})
+        install(
+            TARGETS ${UNITTEST_NAME}.x
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+        )
     endforeach(TEST)
 endif()
 
@@ -127,14 +151,18 @@ if(WITH_TENSORFLOW)
     list(APPEND TENSORFLOW_REPRODUCER "tensorflowReproducer.cpp")
     foreach(TEST ${TENSORFLOW_REPRODUCER})
         message(STATUS "Creating Tensorflow test ${TEST}")
-        message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
+        # message(STATUS "Tensorflow include path ${TENSORFLOW_INCLUDE_DIRS}")
         get_filename_component(UNITTEST_NAME ${TEST} NAME)
         get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
         add_executable(${UNITTEST_NAME}.x ${TEST})
         target_sources(${UNITTEST_NAME}.x PRIVATE tensorflowReproducer.cpp)
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
-        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
-        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE)
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE TensorFlow::tensorflow TensorFlow::framework)
+        install(
+            TARGETS ${UNITTEST_NAME}.x
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+        )
     endforeach(TEST)
 endif()
 
@@ -153,6 +181,10 @@ if(WITH_ONNX)
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${ONNX_INCLUDE_DIRS})
         target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${ONNX_LIBRARIES})
+        install(
+            TARGETS ${UNITTEST_NAME}.x
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+        )
     endforeach(TEST)
 endif()
 
@@ -173,6 +205,10 @@ foreach(TEST ${DISTRIBUTION_TESTS})
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
     target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${MPI_LIBRARIES})
+    install(
+            TARGETS ${UNITTEST_NAME}.x
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+        )
 endforeach(TEST)
 
 
@@ -199,8 +235,8 @@ foreach(TEST ${AIXELERATOR_TESTS})
     if(WITH_TENSORFLOW)
         target_sources(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInference.cpp)
         #target_sources(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp)
-        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
-        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
+        # target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE TensorFlow::tensorflow TensorFlow::framework)
     endif()
     if(WITH_ONNX)
         target_sources(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/onnxInference/onnxInference.cpp)
@@ -223,6 +259,10 @@ foreach(TEST ${AIXELERATOR_TESTS})
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
     target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${MPI_LIBRARIES})
+    install(
+        TARGETS ${UNITTEST_NAME}.x
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+    )
 endforeach(TEST)
 
 
@@ -237,8 +277,8 @@ if(WITH_TORCH)
     target_link_libraries(testAIxeleratorLib.x PRIVATE ${TORCH_LIBRARIES})
 endif()
 if(WITH_TENSORFLOW)
-    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
-    target_link_libraries(testAIxeleratorLib.x PRIVATE ${TENSORFLOW_LIBRARIES})
+    # target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+    target_link_libraries(testAIxeleratorLib.x PRIVATE TensorFlow::tensorflow TensorFlow::framework)
 endif()
 if(WITH_ONNX)
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${ONNX_INCLUDE_DIRS})
@@ -256,6 +296,10 @@ if(WITH_SCOREP)
     )  
 endif()
 target_link_libraries(testAIxeleratorLib.x PRIVATE AIxeleratorServiceLib)
+install(
+    TARGETS testAIxeleratorLib.x
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+)
 
 
 if(WITH_TORCH)
@@ -271,6 +315,10 @@ if(WITH_TORCH)
     target_include_directories(testTorchInference_interfaceC.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
     target_include_directories(testTorchInference_interfaceC.x PRIVATE ${TORCH_INCLUDE_DIRS})
     target_link_libraries(testTorchInference_interfaceC.x PRIVATE ${TORCH_LIBRARIES})
+    install(
+        TARGETS testTorchInference_interfaceC.x
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+    )
 endif()
 
 
@@ -289,6 +337,10 @@ if(WITH_TORCH)
     target_include_directories(testTorchInference_interfaceF.x PRIVATE ${TORCH_INCLUDE_DIRS})
     target_link_libraries(testTorchInference_interfaceF.x PRIVATE ${TORCH_LIBRARIES})
     set_target_properties(testTorchInference_interfaceF.x PROPERTIES LINKER_LANGUAGE Fortran)
+    install(
+        TARGETS testTorchInference_interfaceF.x
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+    )
 endif()
 
 
@@ -312,8 +364,8 @@ endif()
 if(WITH_TENSORFLOW)
     target_sources(testAIxeleratorService_interfaceC.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInference.cpp)
     #target_sources(testAIxeleratorService_interfaceC.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp)
-    target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
-    target_link_libraries(testAIxeleratorService_interfaceC.x PRIVATE ${TENSORFLOW_LIBRARIES})
+    # target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+    target_link_libraries(testAIxeleratorService_interfaceC.x PRIVATE TensorFlow::tensorflow TensorFlow::framework)
 endif()
 if(WITH_ONNX)
     target_sources(testAIxeleratorService_interfaceC.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/onnxInference/onnxInference.cpp )
@@ -335,6 +387,10 @@ endif()
 target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(testAIxeleratorService_interfaceC.x PRIVATE  ${MPI_INCLUDE_PATH} )
 target_link_libraries(testAIxeleratorService_interfaceC.x PRIVATE  ${MPI_LIBRARIES} )
+install(
+    TARGETS testAIxeleratorService_interfaceC.x
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+)
 
 
 message(STATUS "Creating AIxeleratorService Fortran Interface Test")
@@ -358,8 +414,8 @@ endif()
 if(WITH_TENSORFLOW)
     target_sources(testAIxeleratorService_interfaceF.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInference.cpp)
     #target_sources(testAIxeleratorService_interfaceF.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp)
-    target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
-    target_link_libraries(testAIxeleratorService_interfaceF.x PRIVATE ${TENSORFLOW_LIBRARIES} )
+    # target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+    target_link_libraries(testAIxeleratorService_interfaceF.x PRIVATE TensorFlow::tensorflow TensorFlow::framework)
 endif()
 if(WITH_ONNX)
     target_sources(testAIxeleratorService_interfaceF.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/onnxInference/onnxInference.cpp )
@@ -382,6 +438,10 @@ target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE ${PROJECT
 target_include_directories(testAIxeleratorService_interfaceF.x PRIVATE  ${MPI_INCLUDE_PATH} )
 target_link_libraries(testAIxeleratorService_interfaceF.x PRIVATE  ${MPI_LIBRARIES} MPI::MPI_Fortran)
 set_target_properties(testAIxeleratorService_interfaceF.x PROPERTIES LINKER_LANGUAGE Fortran)
+install(
+    TARGETS testAIxeleratorService_interfaceF.x
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+)
 
 if(WITH_SOL)
     message(STATUS "Creating SOL Inference Test")
@@ -395,4 +455,8 @@ if(WITH_SOL)
     target_include_directories(testSOLInference.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
     target_include_directories(testSOLInference.x PRIVATE ${VEDA_INCLUDE_DIRS})
     target_link_libraries(testSOLInference.x PRIVATE ${VEDA_LIBRARIES})
+    install(
+        TARGETS testSOLInference.x
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
+    )
 endif()

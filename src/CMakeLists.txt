@@ -45,8 +45,8 @@ if(WITH_TENSORFLOW)
     target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/tensorflowInference/tensorflowInference.cpp)
     #target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp)
 
-    target_include_directories(AIxeleratorServiceLib PUBLIC ${TENSORFLOW_INCLUDE_DIRS})
-    target_link_libraries(AIxeleratorServiceLib PUBLIC ${TENSORFLOW_LIBRARIES})
+    # target_include_directories(AIxeleratorServiceLib PUBLIC ${TENSORFLOW_INCLUDE_DIRS}) # not necessary anymore when using imported targets
+    target_link_libraries(AIxeleratorServiceLib PUBLIC TensorFlow::tensorflow TensorFlow::framework)
 endif()
 
 if(WITH_ONNX)
@@ -95,3 +95,4 @@ install(
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     #PUBLIC_HEADER DESTINATION ${CMAKE_BINARY_DIR}/include
 )
+

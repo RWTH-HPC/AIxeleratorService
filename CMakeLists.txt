@@ -2,11 +2,31 @@ cmake_minimum_required(VERSION 3.16.3)
 
 project(AIxeleratorService VERSION 1.00 LANGUAGES CXX C Fortran)
 
+
+
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options("-D_GLIBCXX_USE_CXX11_ABI=1")
 add_compile_options("-g")
 
+# all dependent libraries will be installed to ${CMAKE_INSTALL_PREFIX}/bin, so that they can be found via this RPATH setting
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+
 include(FetchContent)
+include(CheckLanguage)
+check_language(CUDA)
+if(CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
+    message(STATUS "Found CUDA compiler: ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "Found CUDA compiler version: ${CMAKE_CUDA_COMPILER_VERSION}")
+
+    # determine individual MAJOR, MINOR, PATCH version of CUDA
+    string(REPLACE "." ";" CUDA_VERSION_LIST "${CMAKE_CUDA_COMPILER_VERSION}")
+    list(GET CUDA_VERSION_LIST 0 CUDA_VERSION_MAJOR)
+    list(GET CUDA_VERSION_LIST 1 CUDA_VERSION_MINOR)
+    list(GET CUDA_VERSION_LIST 2 CUDA_VERSION_PATCH)
+else()
+    message(STATUS "CUDA language not available on this system.")
+endif()
 
 include(FortranCInterface)
 FortranCInterface_VERIFY(CXX)
@@ -26,11 +46,23 @@ option(BUILD_TESTS "Build tests" ON)
 
 # Options for AI-Frameworks
 option(WITH_TORCH "Build with support for Torch backend" OFF)
+set(TORCH_VERSION "2.7.1" CACHE STRING "Version of prebuilt Torch to use. Version format: <MAJOR>.<MINOR>.<PATCH>")
 option(WITH_TENSORFLOW "Build with support for Tensorflow backend" OFF)
-set(TENSORFLOW_VERSION "2.17.0" CACHE STRING "Version of TensorFlow to use.")
+set(TENSORFLOW_VERSION "2.17.0" CACHE STRING "Version of prebuilt TensorFlow to use.")
 option(WITH_SOL "Build with support for NEC SOL backend" OFF)
 option(WITH_ONNX "Build with support for ONNX backend" OFF)
 option(WITH_SCOREP "Build with Score-P instrumentation for profiling/tracing" OFF)
+
+# add error check if no AI framework is activated
+if((NOT ${WITH_TORCH} AND NOT ${WITH_TENSORFLOW}) AND NOT ${WITH_SOL} AND NOT ${WITH_ONNX})
+  message(FATAL_ERROR "You are trying to build the AIxeleratorService without any ML framework backend. At least one of the following options need to be defined: \n -DWITH_TORCH=ON for PyTorch libtorch backend \n -DWITH_TENSORFLOW=ON for TensorFlow backend \n -DWITH_ONNX=ON for ONNX runtime backend")
+endif()
+
+# general packages
+find_package(MPI REQUIRED)
+if(WITH_SCOREP)
+  find_package(Scorep REQUIRED)
+endif()
 
 # creation of virtual environment
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
@@ -48,6 +80,26 @@ if(NOT EXISTS "${AIX_VENV_DIR}/bin/activate")
   endif()
 
   # install required packages
+
+  # install numpy
+  execute_process(
+      COMMAND ${AIX_VENV_DIR}/bin/pip install numpy
+      RESULT_VARIABLE NUMPY_RESULT
+      COMMAND_ECHO STDOUT
+  )
+
+  # install pytorch
+  if(WITH_TORCH)
+    execute_process(
+      COMMAND ${AIX_VENV_DIR}/bin/pip install torch==${TORCH_VERSION}
+      RESULT_VARIABLE TORCH_RESULT
+      COMMAND_ECHO STDOUT
+    )
+    if(NOT TORCH_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to pip install Torch ${TORCH_VERSION}! Error code: ${TORCH_RESULT}")
+    endif()
+  endif()
+
   if(WITH_TENSORFLOW)
     execute_process(
       COMMAND ${AIX_VENV_DIR}/bin/pip install tensorflow==${TENSORFLOW_VERSION}
@@ -56,7 +108,6 @@ if(NOT EXISTS "${AIX_VENV_DIR}/bin/activate")
     )
     if(NOT TF_RESULT EQUAL 0)
       message(FATAL_ERROR "Failed to pip install TensorFlow! Error code: ${TF_RESULT}")
-
     endif()
 
     execute_process(
@@ -74,18 +125,30 @@ else()
 endif()
 ###################### END CREATION OF VIRTUAL ENVIRONMENT ######################
 
-# add error check if no AI framework is activated
-if((NOT ${WITH_TORCH} AND NOT ${WITH_TENSORFLOW}) AND NOT ${WITH_SOL} AND NOT ${WITH_ONNX})
-  message(FATAL_ERROR "You are trying to build the AIxeleratorService without any ML framework backend. At least one of the following options need to be defined: \n -DWITH_TORCH=ON for PyTorch libtorch backend \n -DWITH_TENSORFLOW=ON for TensorFlow backend \n -DWITH_ONNX=ON for ONNX runtime backend")
-endif()
-
-find_package(MPI REQUIRED)
-if(WITH_SCOREP)
-  find_package(Scorep REQUIRED)
-endif()
-
 if(WITH_TORCH)
   add_compile_options("-DWITH_TORCH")
+
+  set(TORCH_SOURCE_DIR "${CMAKE_BINARY_DIR}/extern/torch")
+  message(STATUS "TORCH_SOURCE_DIR = ${TORCH_SOURCE_DIR}")
+
+  # define architecture for Torch, e.g. "cu126" (CUDA 12.6) or "cpu"
+  if(CMAKE_CUDA_COMPILER)
+    set(TORCH_ARCH "cu${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
+  else()
+    set(TORCH_ARCH "cpu") 
+  endif()
+
+  # TODO: download libtorch CPU or GPU
+  set(TORCH_DOWNLOAD_URL "https://download.pytorch.org/libtorch/${TORCH_ARCH}/libtorch-cxx11-abi-shared-with-deps-${TORCH_VERSION}%2B${TORCH_ARCH}.zip")
+  FetchContent_Declare(
+    TorchDownload
+    URL ${TORCH_DOWNLOAD_URL}
+    SOURCE_DIR "${TORCH_SOURCE_DIR}"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  FetchContent_MakeAvailable(TorchDownload)
+
+  list(APPEND CMAKE_PREFIX_PATH ${TORCH_SOURCE_DIR})
   find_package(Torch REQUIRED)
 
   # remove libcuda from TORCH_LIBRARIES
@@ -103,6 +166,22 @@ if(WITH_TORCH)
   endforeach()
   message(STATUS "modified Torch Libraries = ${TORCH_LIBRARIES_TMP}")
   set(TORCH_LIBRARIES ${TORCH_LIBRARIES_TMP})
+
+  # add torch libraries required for installation to be found via RPATH
+  set(TORCH_LIB_DIR "${TORCH_SOURCE_DIR}/lib")
+  message(STATUS "TORCH_LIB_DIR = ${TORCH_LIB_DIR}")
+  file(GLOB TORCH_CORE_LIBS "${TORCH_LIB_DIR}/libtorch*.so")
+  message(STATUS "TORCH_CORE_LIBS = ${TORCH_CORE_LIBS}")
+  file(GLOB TORCH_C10_LIBS "${TORCH_LIB_DIR}/libc10*.so")
+  message(STATUS "TORCH_C10_LIBS = ${TORCH_C10_LIBS}")
+  set(TORCH_INSTALL_LIBS ${TORCH_CORE_LIBS} ${TORCH_C10_LIBS})
+  message(STATUS "TORCH_INSTALL_LIBS = ${TORCH_INSTALL_LIBS}")
+
+  file(GLOB TORCH_INSTALL_LIBS "${TORCH_LIB_DIR}/*.so*")
+  install(
+    FILES ${TORCH_INSTALL_LIBS}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+  )
 endif()
 
 if(WITH_TENSORFLOW)
@@ -130,6 +209,34 @@ if(WITH_TENSORFLOW)
   message(STATUS "TENSORFLOW_LIB_DIR = ${TENSORFLOW_LIB_DIR}")
   set(TENSORFLOW_LIBRARIES ${TENSORFLOW_LIB_DIR}/libtensorflow.so ${TENSORFLOW_LIB_DIR}/libtensorflow_framework.so)
   message(STATUS "TENSORFLOW_LIBRARIES = ${TENSORFLOW_LIBRARIES}")
+
+  # modern CMake solution using IMPORTED targets
+  add_library(TensorFlow::tensorflow SHARED IMPORTED GLOBAL)
+  set_target_properties(TensorFlow::tensorflow PROPERTIES
+    IMPORTED_LOCATION "${TENSORFLOW_LIB_DIR}/libtensorflow.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${TENSORFLOW_INCLUDE_DIRS}"
+    IMPORTED_SONAME "libtensorflow.so"
+    INTERFACE_LINK_DIRECTORIES ${TENSORFLOW_LIB_DIR}
+  )
+
+  # modern CMake solution using IMPORTED targets
+  add_library(TensorFlow::framework SHARED IMPORTED GLOBAL)
+  set_target_properties(TensorFlow::framework PROPERTIES
+    IMPORTED_LOCATION "${TENSORFLOW_LIB_DIR}/libtensorflow_framework.so"
+    IMPORTED_SONAME "libtensorflow_framework.so"
+    INTERFACE_LINK_DIRECTORIES "${TENSORFLOW_LIB_DIR}"
+  )
+
+  file(GLOB TENSORFLOW_CORE_LIBS "${TENSORFLOW_LIB_DIR}/libtensorflow*.so*")
+  file(GLOB TENSORFLOW_FRAMEWORK_LIBS "${TENSORFLOW_LIB_DIR}/libtensorflow_framework*.so*")
+  set(TENSORFLOW_SHARED_LIBS ${TENSORFLOW_CORE_LIBS} ${TENSORFLOW_FRAMEWORK_LIBS})
+
+  install(
+    FILES
+      ${TENSORFLOW_SHARED_LIBS}
+    DESTINATION
+      ${CMAKE_INSTALL_PREFIX}/lib
+  )
 endif()
 
 if(WITH_ONNX)
@@ -158,6 +265,8 @@ if(WITH_SCOREP)
 endif()
 
 add_subdirectory(src)
+add_subdirectory(models)
+
 
 if(BUILD_TESTS)
   add_subdirectory(test)
