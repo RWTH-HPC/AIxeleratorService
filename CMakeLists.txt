@@ -51,7 +51,25 @@ option(WITH_TENSORFLOW "Build with support for Tensorflow backend" OFF)
 set(TENSORFLOW_VERSION "2.17.0" CACHE STRING "Version of prebuilt TensorFlow to use.")
 option(WITH_SOL "Build with support for NEC SOL backend" OFF)
 option(WITH_ONNX "Build with support for ONNX backend" OFF)
+set(ONNXRUNTIME_VERSION "1.22.0" CACHE STRING "Version of prebuilt ONNXRuntime to use.")
 option(WITH_SCOREP "Build with Score-P instrumentation for profiling/tracing" OFF)
+
+if(CMAKE_CUDA_COMPILER)
+  if(WITH_TORCH)
+    # define architecture for Torch, e.g. "cu126" (CUDA 12.6) or "cpu"
+    set(TORCH_ARCH "cu${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
+  endif()
+  if(WITH_ONNX)
+    set(ONNX_ARCH "-gpu")
+  endif()
+else()
+  if(WITH_TORCH)
+    set(TORCH_ARCH "cpu") 
+  endif()
+  if(WITH_ONNX)
+    set(ONNX_ARCH "") # onnx does not explicitly name their libraries "cpu" but omits the "gpu" term
+  endif()
+endif()
 
 # add error check if no AI framework is activated
 if((NOT ${WITH_TORCH} AND NOT ${WITH_TENSORFLOW}) AND NOT ${WITH_SOL} AND NOT ${WITH_ONNX})
@@ -87,9 +105,12 @@ if(NOT EXISTS "${AIX_VENV_DIR}/bin/activate")
       RESULT_VARIABLE NUMPY_RESULT
       COMMAND_ECHO STDOUT
   )
+  if(NOT NUMPY_RESULT EQUAL 0)
+      message(FATAL_ERROR "Failed to pip install numpy! Error code: ${NUMPY_RESULT}")
+  endif()
 
-  # install pytorch
-  if(WITH_TORCH)
+  # install pytorch 
+  if(WITH_TORCH OR WITH_ONNX) # (also required to create a test model for ONNXRuntime in Python)
     execute_process(
       COMMAND ${AIX_VENV_DIR}/bin/pip install torch==${TORCH_VERSION}
       RESULT_VARIABLE TORCH_RESULT
@@ -107,7 +128,7 @@ if(NOT EXISTS "${AIX_VENV_DIR}/bin/activate")
       COMMAND_ECHO STDOUT
     )
     if(NOT TF_RESULT EQUAL 0)
-      message(FATAL_ERROR "Failed to pip install TensorFlow! Error code: ${TF_RESULT}")
+      message(FATAL_ERROR "Failed to pip install TensorFlow ${TENSORFLOW_VERSION}! Error code: ${TF_RESULT}")
     endif()
 
     execute_process(
@@ -116,8 +137,30 @@ if(NOT EXISTS "${AIX_VENV_DIR}/bin/activate")
       COMMAND_ECHO STDOUT
     )
     if(NOT TF_KERAS_RESULT EQUAL 0)
-      message(FATAL_ERROR "Failed to pip install tf-keras! Error code: ${TF_KERAS_RESULT}")
+      message(FATAL_ERROR "Failed to pip install tf-keras ${TENSORFLOW_VERSION}! Error code: ${TF_KERAS_RESULT}")
     endif()
+  endif()
+
+  if(WITH_ONNX)
+    # pip install onnx
+    execute_process(
+      COMMAND ${AIX_VENV_DIR}/bin/pip install onnx
+      RESULT_VARIABLE ONNX_RESULT
+      COMMAND_ECHO STDOUT
+    )
+    if(NOT ONNX_RESULT EQUAL 0)
+      message(FATAL_ERROR "Failed to pip install onnx ${ONNX_VERSION}! Error code: ${ONNX_RESULT}")
+    endif()
+
+    # pip install onnxruntime
+    execute_process(
+      COMMAND ${AIX_VENV_DIR}/bin/pip install onnxruntime${ONNX_ARCH}==${ONNXRUNTIME_VERSION}
+      RESULT_VARIABLE ONNX_RESULT
+      COMMAND_ECHO STDOUT
+    )
+    if(NOT ONNX_RESULT EQUAL 0)
+      message(FATAL_ERROR "Failed to pip install ONNXRuntime ${ONNX_VERSION}! Error code: ${ONNX_RESULT}")
+    endif()   
   endif()
 
 else()
@@ -130,13 +173,6 @@ if(WITH_TORCH)
 
   set(TORCH_SOURCE_DIR "${CMAKE_BINARY_DIR}/extern/torch")
   message(STATUS "TORCH_SOURCE_DIR = ${TORCH_SOURCE_DIR}")
-
-  # define architecture for Torch, e.g. "cu126" (CUDA 12.6) or "cpu"
-  if(CMAKE_CUDA_COMPILER)
-    set(TORCH_ARCH "cu${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
-  else()
-    set(TORCH_ARCH "cpu") 
-  endif()
 
   # TODO: download libtorch CPU or GPU
   set(TORCH_DOWNLOAD_URL "https://download.pytorch.org/libtorch/${TORCH_ARCH}/libtorch-cxx11-abi-shared-with-deps-${TORCH_VERSION}%2B${TORCH_ARCH}.zip")
@@ -241,6 +277,20 @@ endif()
 
 if(WITH_ONNX)
   add_compile_options("-DWITH_ONNX")
+
+  # URL 
+  set(ONNX_DIR "${CMAKE_BINARY_DIR}/extern/onnxruntime")
+  message(STATUS "ONNX_DIR = ${ONNX_DIR}")
+
+  # download TensorFlow
+  FetchContent_Declare(
+    ONNXRuntimeDownload
+    URL "https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-linux-x64${ONNX_ARCH}-1.22.0.tgz"
+    SOURCE_DIR "${ONNX_DIR}"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  FetchContent_MakeAvailable(ONNXRuntimeDownload)
+
   message(STATUS "ONNX_DIR = ${ONNX_DIR}")
   set(ONNX_INCLUDE_DIRS ${ONNX_DIR}/include)
   message(STATUS "ONNX_INCLUDE_DIRS = ${ONNX_INCLUDE_DIRS}")
@@ -248,6 +298,23 @@ if(WITH_ONNX)
   message(STATUS "ONNX_LIB_DIR = ${ONNX_LIB_DIR}")
   set(ONNX_LIBRARIES ${ONNX_LIB_DIR}/libonnxruntime.so)
   message(STATUS "ONNX_LIBRARIES = ${ONNX_LIBRARIES}")
+
+  # modern CMake solution using IMPORTED targets
+  add_library(ONNXRuntime::onnxruntime SHARED IMPORTED GLOBAL)
+  set_target_properties(ONNXRuntime::onnxruntime PROPERTIES
+    IMPORTED_LOCATION "${ONNX_LIB_DIR}/libonnxruntime.so"
+    INTERFACE_INCLUDE_DIRECTORIES "${ONNX_INCLUDE_DIRS}"
+    IMPORTED_SONAME "libonnxruntime.so"
+    INTERFACE_LINK_DIRECTORIES ${ONNX_LIB_DIR}
+  )
+
+  file(GLOB ONNX_INSTALL_LIBS "${ONNX_LIB_DIR}/libonnxruntime*.so*")
+  install(
+    FILES
+      ${ONNX_INSTALL_LIBS}
+    DESTINATION
+      ${CMAKE_INSTALL_PREFIX}/lib
+  )
 endif()
 
 if(WITH_SOL)

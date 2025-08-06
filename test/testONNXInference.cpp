@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     int batchsize = 3;
     int device_id = 0;
 
-    std::string model_file_name = "../models/onnxModels/flexMLP-float-1x100x100x1.onnx";
+    std::string model_file_name = "../models/onnxModels/flexMLP-float-2x100x100x2.onnx";
 
     std::cout << "Creating ONNX inference object" << std::endl;
     ONNXInference<float> onnxInfer(model_file_name);

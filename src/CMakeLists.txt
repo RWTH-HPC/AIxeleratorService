@@ -46,13 +46,15 @@ if(WITH_TENSORFLOW)
     #target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp)
 
     # target_include_directories(AIxeleratorServiceLib PUBLIC ${TENSORFLOW_INCLUDE_DIRS}) # not necessary anymore when using imported targets
-    target_link_libraries(AIxeleratorServiceLib PUBLIC TensorFlow::tensorflow TensorFlow::framework)
+    target_link_libraries(AIxeleratorServiceLib PUBLIC 
+        TensorFlow::tensorflow 
+        TensorFlow::framework)
 endif()
 
 if(WITH_ONNX)
     target_sources(AIxeleratorServiceLib PRIVATE inferenceStrategy/onnxInference/onnxInference.cpp)
-    target_include_directories(AIxeleratorServiceLib PUBLIC ${ONNX_INCLUDE_DIRS})
-    target_link_libraries(AIxeleratorServiceLib PUBLIC ${ONNX_LIBRARIES})
+    #target_include_directories(AIxeleratorServiceLib PUBLIC ${ONNX_INCLUDE_DIRS})
+    target_link_libraries(AIxeleratorServiceLib PUBLIC ONNXRuntime::onnxruntime)
 endif()
 
 if(WITH_SOL)
