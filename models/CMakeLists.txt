@@ -10,7 +10,7 @@ if(WITH_TORCH OR WITH_ONNX)
     set(TORCH_TEST_MODEL_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/torchModels/createModel.py)
     add_custom_command(
         OUTPUT ${TORCH_TEST_MODEL}
-        COMMAND ${AIX_VENV_DIR}/bin/python3 ${TORCH_TEST_MODEL_SCRIPT} 2 2 -n 100 100 -o ${TORCH_TEST_MODEL}
+        COMMAND CUDA_VISIBLE_DEVICES="" ${AIX_VENV_DIR}/bin/python3 ${TORCH_TEST_MODEL_SCRIPT} 2 2 -n 100 100 -o ${TORCH_TEST_MODEL}
         DEPENDS ${TORCH_MODEL_BINARY_DIR} ${TORCH_TEST_MODEL_SCRIPT} 
         COMMENT "Generating PyTorch test model (double) using createModel.py"
         VERBATIM 
@@ -24,7 +24,7 @@ if(WITH_TORCH OR WITH_ONNX)
     set(TORCH_TEST_MODEL_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/torchModels/createModel.py)
     add_custom_command(
         OUTPUT ${TORCH_TEST_MODEL_FLOAT}
-        COMMAND ${AIX_VENV_DIR}/bin/python3 ${TORCH_TEST_MODEL_SCRIPT} 2 2 -n 100 100 -o ${TORCH_TEST_MODEL_FLOAT} --with-float
+        COMMAND CUDA_VISIBLE_DEVICES="" ${AIX_VENV_DIR}/bin/python3 ${TORCH_TEST_MODEL_SCRIPT} 2 2 -n 100 100 -o ${TORCH_TEST_MODEL_FLOAT} --with-float
         DEPENDS ${TORCH_MODEL_BINARY_DIR} ${TORCH_TEST_MODEL_SCRIPT} 
         COMMENT "Generating PyTorch test model (float) using createModel.py"
         VERBATIM 
@@ -52,7 +52,7 @@ if(WITH_TENSORFLOW)
     set(TENSORFLOW_FLEXMLP_MODEL_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/tensorflowModels/createModel_tf.py)
     add_custom_command(
         OUTPUT ${TENSORFLOW_FLEXMLP_MODEL}
-        COMMAND ${AIX_VENV_DIR}/bin/python3 ${TENSORFLOW_FLEXMLP_MODEL_SCRIPT} 2 2 -n 100 100 -o ${TENSORFLOW_FLEXMLP_MODEL}
+        COMMAND CUDA_VISIBLE_DEVICES="" ${AIX_VENV_DIR}/bin/python3 ${TENSORFLOW_FLEXMLP_MODEL_SCRIPT} 2 2 -n 100 100 -o ${TENSORFLOW_FLEXMLP_MODEL}
         WORKING_DIRECTORY ${TENSORFLOW_MODEL_BINARY_DIR}
         DEPENDS ${TENSORFLOW_MODEL_BINARY_DIR} ${TENSORFLOW_FLEXMLP_MODEL_SCRIPT} 
         COMMENT "Generating TensorFlow FlexMLP-2x100x100x2.tf test model using createModel_tf.py"
@@ -67,7 +67,7 @@ if(WITH_TENSORFLOW)
     set(TENSORFLOW_CONV2D_MODEL_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/tensorflowModels/createFlexCNN2D.py)
     add_custom_command(
         OUTPUT ${TENSORFLOW_CONV2D_MODEL}
-        COMMAND ${AIX_VENV_DIR}/bin/python3 ${TENSORFLOW_CONV2D_MODEL_SCRIPT}
+        COMMAND CUDA_VISIBLE_DEVICES="" ${AIX_VENV_DIR}/bin/python3 ${TENSORFLOW_CONV2D_MODEL_SCRIPT}
         WORKING_DIRECTORY ${TENSORFLOW_MODEL_BINARY_DIR}
         DEPENDS ${TENSORFLOW_MODEL_BINARY_DIR} ${TENSORFLOW_CONV2D_MODEL_SCRIPT} 
         COMMENT "Generating TensorFlow testConvolution2D.tf test model using createFlexCNN2D.py"
@@ -82,7 +82,7 @@ if(WITH_TENSORFLOW)
     set(TENSORFLOW_CONV3D_MODEL_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/tensorflowModels/createFlexCNN3D.py)
     add_custom_command(
         OUTPUT ${TENSORFLOW_CONV3D_MODEL}
-        COMMAND ${AIX_VENV_DIR}/bin/python3 ${TENSORFLOW_CONV3D_MODEL_SCRIPT}
+        COMMAND CUDA_VISIBLE_DEVICES="" ${AIX_VENV_DIR}/bin/python3 ${TENSORFLOW_CONV3D_MODEL_SCRIPT}
         WORKING_DIRECTORY ${TENSORFLOW_MODEL_BINARY_DIR}
         DEPENDS ${TENSORFLOW_MODEL_BINARY_DIR} ${TENSORFLOW_CONV3D_MODEL_SCRIPT} 
         COMMENT "Generating TensorFlow testConvolution3D.tf test model using createFlexCNN3D.py"
@@ -112,7 +112,7 @@ if(WITH_ONNX)
     set(ONNX_TEST_MODEL_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/onnxModels/convertFromTorch.py)
     add_custom_command(
         OUTPUT ${ONNX_TEST_MODEL}
-        COMMAND ${AIX_VENV_DIR}/bin/python3 ${ONNX_TEST_MODEL_SCRIPT} -mip ${TORCH_TEST_MODEL_FLOAT} -mop ${ONNX_TEST_MODEL} -ninp 2 -nout 2 --with-float
+        COMMAND CUDA_VISIBLE_DEVICES="" ${AIX_VENV_DIR}/bin/python3 ${ONNX_TEST_MODEL_SCRIPT} -mip ${TORCH_TEST_MODEL_FLOAT} -mop ${ONNX_TEST_MODEL} -ninp 2 -nout 2 --with-float
         DEPENDS ${ONNX_MODEL_BINARY_DIR} ${ONNX_TEST_MODEL_SCRIPT} ${TORCH_TEST_MODEL_FLOAT}
         COMMENT "Generating ONNX test model using convertFromTorch.py"
         VERBATIM 
