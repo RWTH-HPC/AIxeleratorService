@@ -8,7 +8,6 @@ target_sources(
             communicationStrategy/nonBlockingPtoPCommunication.cpp
             aixeleratorService/aixeleratorService.cpp
             aixeleratorService/aixeleratorService_interfaceC.cpp
-        PUBLIC
             aixeleratorService/aixeleratorService_interfaceF.f90
 )
 
