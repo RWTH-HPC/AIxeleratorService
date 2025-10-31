@@ -6,6 +6,13 @@
 
 #include <ATen/ATen.h>
 
+#ifdef SCOREP
+#include <scorep/SCOREP_User.h>
+
+SCOREP_USER_REGION_DEFINE( torchInferenceHandle )
+SCOREP_USER_REGION_DEFINE( torchForwardHandle )
+#endif
+
 template<typename T>
 torch::Dtype getTypeFromTemplate()
 {
@@ -76,6 +83,11 @@ void TorchInference<T>::init(
 template<typename T>
 void TorchInference<T>::inference()
 {
+#ifdef SCOREP
+    SCOREP_USER_REGION_BEGIN(torchInferenceHandle, "torchInference::inference", SCOREP_USER_REGION_TYPE_FUNCTION)
+#endif
+
+    torch::NoGradGuard no_grad; 
     int batch_dim = input_.size(0);
     int num_batches = batch_dim / batchsize_;
     int size_remaining = batch_dim % batchsize_;
@@ -91,7 +103,17 @@ void TorchInference<T>::inference()
             input_batch_ = input_.slice(0, batchsize_*i, batchsize_*(i+1));
             input_gpu_ = input_batch_.to(torch::Device(torch::kCUDA, device_id_));
             std::vector<torch::jit::IValue> inputs = {input_gpu_};
+
+            #ifdef SCOREP
+                SCOREP_USER_REGION_BEGIN(torchForwardHandle, "torchInference::forward", SCOREP_USER_REGION_TYPE_COMMON)
+            #endif
+
             output_gpu_ = torch_model_.forward(inputs).toTensor();
+            
+            #ifdef SCOREP
+                SCOREP_USER_REGION_END(torchForwardHandle)
+            #endif
+
             output_.slice(0, batchsize_*i, batchsize_*(i+1)) = output_gpu_.to(torch::kCPU);
         }
     }
@@ -101,10 +123,24 @@ void TorchInference<T>::inference()
         {
             input_batch_ = input_.slice(0, batchsize_*i, batchsize_*(i+1));
             std::vector<torch::jit::IValue> inputs = {input_batch_};
+
+            #ifdef SCOREP
+                SCOREP_USER_REGION_BEGIN(torchForwardHandle, "torchInference::forward", SCOREP_USER_REGION_TYPE_COMMON)
+            #endif
+
             output_batch_ = torch_model_.forward(inputs).toTensor();
+
+            #ifdef SCOREP
+                SCOREP_USER_REGION_END(torchForwardHandle)
+            #endif
+
             output_.slice(0, batchsize_*i, batchsize_*(i+1)) = output_batch_.to(torch::kCPU);
         }   
     }
+
+#ifdef SCOREP
+    SCOREP_USER_REGION_END(torchInferenceHandle)
+#endif
 }
 
 

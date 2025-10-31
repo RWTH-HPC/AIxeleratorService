@@ -6,6 +6,7 @@
 #include "communicationStrategy/communicationStrategy.h"
 
 #include <memory>
+#include <optional>
 
 typedef enum AIFramework
 {
@@ -25,7 +26,9 @@ class AIxeleratorService
             std::string model_file,
             std::vector<int64_t> input_shape, T* input_data,
             std::vector<int64_t> output_shape, T* output_data,
-            int batchsize, MPI_Comm app_comm
+            int batchsize, MPI_Comm app_comm,
+            bool enable_hybrid = false,
+            std::optional<float> host_fraction = std::nullopt
         );
 
         ~AIxeleratorService();
@@ -58,6 +61,9 @@ class AIxeleratorService
         T* output_data_host_;
         T* output_data_device_;
         int batchsize_; // TODO: remove this
+        bool enable_hybrid_;
+        std::optional<float> host_fraction_;
+
         AIFramework framework_;
 
         std::unique_ptr<DistributionStrategy> distributor_;

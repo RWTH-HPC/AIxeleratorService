@@ -202,6 +202,13 @@ foreach(TEST ${DISTRIBUTION_TESTS})
         ${PROJECT_SOURCE_DIR}/src/communicationStrategy/collectiveCommunication.cpp
         ${PROJECT_SOURCE_DIR}/src/communicationStrategy/nonBlockingPtoPCommunication.cpp
     )
+    if(WITH_HWLOC)
+        target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/distributionStrategy/gpuAffineRRDistribution.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${HWLOC_ROOT}/include)
+        target_link_libraries(${UNITTEST_NAME}.x PUBLIC ${HWLOC_ROOT}/lib/libhwloc.so)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${NUMA_ROOT}/include)
+        target_link_libraries(${UNITTEST_NAME}.x PUBLIC ${NUMA_ROOT}/lib/libnuma.so)
+    endif()
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src)
     target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
     target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${MPI_LIBRARIES})
@@ -227,6 +234,13 @@ foreach(TEST ${AIXELERATOR_TESTS})
         ${PROJECT_SOURCE_DIR}/src/communicationStrategy/collectiveCommunication.cpp 
         ${PROJECT_SOURCE_DIR}/src/communicationStrategy/nonBlockingPtoPCommunication.cpp
     )
+    if(WITH_HWLOC)
+        target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/distributionStrategy/gpuAffineRRDistribution.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${HWLOC_ROOT}/include)
+        target_link_libraries(${UNITTEST_NAME}.x PUBLIC ${HWLOC_ROOT}/lib/libhwloc.so)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${NUMA_ROOT}/include)
+        target_link_libraries(${UNITTEST_NAME}.x PUBLIC ${NUMA_ROOT}/lib/libnuma.so)
+    endif()
     if(WITH_TORCH)
         target_sources(${UNITTEST_NAME}.x PRIVATE ${PROJECT_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp)
         target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
@@ -263,6 +277,62 @@ foreach(TEST ${AIXELERATOR_TESTS})
         TARGETS ${UNITTEST_NAME}.x
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
     )
+endforeach(TEST)
+
+list(APPEND AIXELERATOR_TESTS_HYBRID "testAIxeleratorServiceHybridTBLTR.cpp")
+foreach(TEST ${AIXELERATOR_TESTS_HYBRID})
+    message(STATUS "Creating AIxelerator test ${TEST}")
+    get_filename_component(UNITTEST_NAME ${TEST} NAME)
+    get_filename_component(UNITTEST_DIR ${TEST} DIRECTORY)
+    add_executable(${UNITTEST_NAME}.x ${TEST})
+    target_sources(
+        ${UNITTEST_NAME}.x 
+        PRIVATE 
+        ${TEST} 
+        ${CMAKE_SOURCE_DIR}/src/aixeleratorService/aixeleratorService.cpp 
+        ${CMAKE_SOURCE_DIR}/src/distributionStrategy/roundRobinDistribution.cpp   
+        ${CMAKE_SOURCE_DIR}/src/communicationStrategy/collectiveCommunication.cpp 
+        ${CMAKE_SOURCE_DIR}/src/communicationStrategy/nonBlockingPtoPCommunication.cpp
+    )
+    if(WITH_HWLOC)
+        target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/distributionStrategy/gpuAffineRRDistribution.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${HWLOC_ROOT}/include)
+        target_link_libraries(${UNITTEST_NAME}.x PUBLIC ${HWLOC_ROOT}/lib/libhwloc.so)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${NUMA_ROOT}/include)
+        target_link_libraries(${UNITTEST_NAME}.x PUBLIC ${NUMA_ROOT}/lib/libnuma.so)
+    endif()
+    if(WITH_TORCH)
+        target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/torchInference/torchInference.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TORCH_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TORCH_LIBRARIES})
+    endif()
+    if(WITH_TENSORFLOW)
+        target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInference.cpp)
+        #target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/tensorflowInference/tensorflowInferenceCpp.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${TENSORFLOW_LIBRARIES})
+    endif()
+    if(WITH_ONNX)
+        target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/onnxInference/onnxInference.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${ONNX_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${ONNX_LIBRARIES})
+    endif()
+    if(WITH_SOL)
+        target_sources(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src/inferenceStrategy/solInference/solInference.cpp)
+        target_include_directories(${UNITTEST_NAME}.x PRIVATE ${VEDA_INCLUDE_DIRS})
+        target_link_libraries(${UNITTEST_NAME}.x PUBLIC ${VEDA_LIBRARIES})
+    endif()
+    if(WITH_SCOREP)
+        scorep_instrument_target(
+            ${UNITTEST_NAME}.x
+                USER ON
+                COMPILER OFF
+                MPP "mpi" 
+        )  
+    endif()
+    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${CMAKE_SOURCE_DIR}/src)
+    target_include_directories(${UNITTEST_NAME}.x PRIVATE ${MPI_INCLUDE_PATH})
+    target_link_libraries(${UNITTEST_NAME}.x PRIVATE ${MPI_LIBRARIES})
 endforeach(TEST)
 
 

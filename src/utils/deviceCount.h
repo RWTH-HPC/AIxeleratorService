@@ -4,7 +4,7 @@
 namespace aixelerator_service {
 namespace utils {
 
-int deviceCount()
+inline int deviceCount()
 {
     int count = -1;
     void* cuda_rt = dlopen("libcudart.so", RTLD_LAZY);

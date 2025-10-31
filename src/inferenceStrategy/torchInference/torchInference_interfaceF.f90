@@ -27,7 +27,9 @@ subroutine C_deleteTorchInferenceFloat (torch_obj) bind(C, name="deleteTorchInfe
     type(C_ptr), value :: torch_obj
 end subroutine
 
-subroutine C_initTorchInferenceDouble (torch_obj, batchsize, device_id, model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data) bind(C, name="initTorchInferenceDouble")
+subroutine C_initTorchInferenceDouble (torch_obj, batchsize, device_id, model_file, &
+        input_shape, num_input_dims, input_data, &
+        output_shape, num_output_dims, output_data) bind(C, name="initTorchInferenceDouble")
     import
     type(C_ptr), value :: torch_obj
     integer(C_int), value :: batchsize
@@ -41,7 +43,9 @@ subroutine C_initTorchInferenceDouble (torch_obj, batchsize, device_id, model_fi
     REAL(C_double) :: output_data(*)
 end subroutine
 
-subroutine C_initTorchInferenceFloat (torch_obj, batchsize, device_id, model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data) bind(C, name="initTorchInferenceFloat")
+subroutine C_initTorchInferenceFloat (torch_obj, batchsize, device_id, model_file, &
+    input_shape, num_input_dims, input_data, &
+    output_shape, num_output_dims, output_data) bind(C, name="initTorchInferenceFloat")
     import
     type(C_ptr), value :: torch_obj
     integer(C_int), value :: batchsize

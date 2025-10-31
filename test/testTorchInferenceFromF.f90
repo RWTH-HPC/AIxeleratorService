@@ -44,13 +44,15 @@ use iso_c_binding, only: C_ptr
     torch_obj = C_createTorchInferenceDouble()
 
     write(*,*) "Init Torch Inference object in Fortran now!"
-    call C_initTorchInferenceDouble(torch_obj, batchsize, device_id, model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data)
+    call C_initTorchInferenceDouble(torch_obj, batchsize, device_id, model_file, &
+    input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data)
 
     write(*,*) "Torch Inference Test inference in Fortran now!"
     call C_forwardTorchInferenceDouble(torch_obj)
 
     tensor_val_fmt = 'F6.3'
-    tensor_format = '(A1,' // tensor_val_fmt // ',A2,' // tensor_val_fmt // ',A7,' // tensor_val_fmt // ',A2,' // tensor_val_fmt // ',A1)'
+    tensor_format = '(A1,' // tensor_val_fmt // ',A2,' // tensor_val_fmt // &
+    ',A7,' // tensor_val_fmt // ',A2,' // tensor_val_fmt // ',A1)'
 
     write(*,tensor_format) "(", input_data(1), ", ", input_data(2), ") --> (", output_data(1), ", ", output_data(2), ")"
     write(*,tensor_format) "(", input_data(3), ", ", input_data(4), ") --> (", output_data(3), ", ", output_data(4), ")"

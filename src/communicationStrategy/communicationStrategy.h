@@ -31,10 +31,10 @@ class CommunicationStrategy
         std::vector<int64_t> input_shape_controller_;
         std::vector<int64_t> output_shape_controller_; 
 
-        int total_input_count_;
-        int total_output_count_;  
+        int64_t total_input_count_;
+        int64_t total_output_count_;  
 
-        int total_input_samples_;     
+        int64_t total_input_samples_;     
 };
 
 #endif

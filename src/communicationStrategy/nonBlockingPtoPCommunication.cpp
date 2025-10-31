@@ -83,8 +83,8 @@ NonBlockingPtoPCommunication<T>::NonBlockingPtoPCommunication(
             output_displs_[i] = output_displs_[i-1] + output_recvcounts_[i-1];
         }  
 
-        this->total_input_count_ = std::accumulate(input_recvcounts_.begin(), input_recvcounts_.end(), 0);
-        this->total_output_count_ = std::accumulate(output_recvcounts_.begin(), output_recvcounts_.end(), 0);
+        this->total_input_count_ = std::accumulate(input_recvcounts_.begin(), input_recvcounts_.end(), (int64_t)0);
+        this->total_output_count_ = std::accumulate(output_recvcounts_.begin(), output_recvcounts_.end(), (int64_t)0);
 
         this->input_data_controller_ = new T[this->total_input_count_];
         this->output_data_controller_ = new T[this->total_output_count_];

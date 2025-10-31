@@ -1,6 +1,11 @@
 #include "aixeleratorService/aixeleratorService.h"
 
+#ifdef WITH_HWLOC
+#include "distributionStrategy/gpuAffineRRDistribution.h"
+#else
 #include "distributionStrategy/roundRobinDistribution.h"
+#endif
+
 #include "communicationStrategy/collectiveCommunication.h"
 #include "communicationStrategy/nonBlockingPtoPCommunication.h"
 
@@ -30,17 +35,22 @@ SCOREP_USER_REGION_DEFINE( scatterHandle )
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <optional>
+#include <list>
 
 template<typename T>
 AIxeleratorService<T>::AIxeleratorService(
     std::string model_file,
     std::vector<int64_t> input_shape, T* input_data,
     std::vector<int64_t> output_shape, T* output_data,
-    int batchsize, MPI_Comm app_comm
+    int batchsize, MPI_Comm app_comm,
+    bool enable_hybrid,
+    std::optional<float> host_fraction
 )   :   model_file_name_{model_file}, 
         input_shape_{input_shape}, input_data_{input_data}, 
         output_shape_{output_shape}, output_data_{output_data}, 
-        batchsize_{batchsize} 
+        batchsize_{batchsize}, 
+        enable_hybrid_{enable_hybrid}, host_fraction_{host_fraction}
 {
     registerModel(model_file);
 #ifdef WITH_SOL
@@ -54,7 +64,11 @@ AIxeleratorService<T>::AIxeleratorService(
     }
 #endif
 
+#ifdef WITH_HWLOC
+    distributor_ = std::make_unique<GPUAffineRRDistribution>(app_comm);
+#else
     distributor_ = std::make_unique<RoundRobinDistribution>(app_comm);
+#endif
     std::pair<int64_t, int64_t> best_batchsizes(-1, -1);
 
     int num_devices_total = distributor_->getNumDevicesTotal();
@@ -67,12 +81,86 @@ AIxeleratorService<T>::AIxeleratorService(
             distributor_->isGPUController(), *(distributor_->getWorkGroupCommunicator()) 
         );
 
-        if (distributor_->isGPUController() )
-        {
-            best_batchsizes = {0, input_shape[0]};
+        if (enable_hybrid_ && host_fraction_.has_value()) {
+            int64_t local_batchdim = input_shape[0];
+            std::vector<int64_t> all_batchdims;
+            all_batchdims.resize(distributor_->getWorkGroupSize(), -1);
+            MPI_Gather(&local_batchdim, 1, MPI_INT64_T, all_batchdims.data(), 1, MPI_INT64_T, 0, *(distributor_->getWorkGroupCommunicator()));
+            std::vector<std::pair<int64_t, int64_t>> rank_batchsizes;
+
+            if (distributor_->isGPUController()) {
+                int64_t total_input_samples = communicator_->getTotalInputSamples();
+                std::cout << total_input_samples << std::endl;
+                std::cout << "Hybrid processing enabled with work split: " << host_fraction_.value() << std::endl;
+
+                int64_t batch_host = static_cast<int64_t>(std::round(host_fraction_.value() * total_input_samples));
+                batch_host = std::clamp(batch_host, (int64_t)0, total_input_samples); //Pure safety call in case hostfraction is not what was expected
+                int64_t batch_device = total_input_samples - batch_host;
+
+                best_batchsizes = {batch_host, batch_device}; // this is over the total, now we need to set the work for each rank in an efficient way
+                std::cout << input_shape[0] << ", " << batch_host << ", " << batch_device << std::endl;
+            
+                ////
+
+                best_batchsizes.second -= local_batchdim;//all controller work is done on gpu, full controller local pair set at bottom
+                
+                int64_t nranks = all_batchdims.size() - 1; //Without gpu rank
+                int64_t base_cpuwork  = static_cast<int64_t>(std::round(best_batchsizes.first / nranks));
+
+
+                /////////////////
+                //Make sure no rank gets more work than available there (negative gpu work then)
+                std::vector<int64_t> cpuwork_per_rank(nranks);
+                for (int64_t i = 0; i < nranks; ++i){
+                    cpuwork_per_rank[i] = std::min(all_batchdims[i+1], base_cpuwork);
+                    std::cout << i+1<< " " << cpuwork_per_rank[i] << std::endl;
+                }
+
+                int64_t assigned = 0;
+                for (auto x : cpuwork_per_rank) {
+                    assigned += x;
+                }
+                int64_t remaining = best_batchsizes.first - assigned;
+
+                while (remaining > 0) {
+                    bool any_given = false;
+                    for (int64_t i = 0; i < nranks && remaining > 0; ++i) {
+                        if (cpuwork_per_rank[i] < all_batchdims[i+1]) {
+                            cpuwork_per_rank[i]++;
+                            remaining--;
+                            any_given = true;
+                        }
+                    }
+                    if (!any_given) break; // all ranks are capped
+                }
+                if (remaining > 0){ //Some work cant be assigned
+                    std::cout << "More work assigned to CPUs than non-controller ranks have work! Moving work to GPU. Real worksplit will be: " << 1-(static_cast<double>(batch_device+remaining)/total_input_samples) << std::endl;
+                }
+                /////////////
+
+
+                for (size_t i = 1; i < all_batchdims.size(); ++i) {
+                    std::pair<int64_t, int64_t> rank_best_batchsize;
+
+                    rank_best_batchsize.first = cpuwork_per_rank[i-1];
+                    rank_best_batchsize.second = all_batchdims[i] - rank_best_batchsize.first;
+
+                    std::cout << "Rank "<<  i << " has " << all_batchdims[i] << " elements, on CPU: " <<  rank_best_batchsize.first <<", on GPU: " << rank_best_batchsize.second << std::endl;
+                    int64_t batchpair[2] = {rank_best_batchsize.first, rank_best_batchsize.second};
+                    MPI_Send(batchpair, 2, MPI_INT64_T, i, 0, *(distributor_->getWorkGroupCommunicator()));
+                }
+                best_batchsizes = {0, local_batchdim}; //for controller only
+            }else{
+                int64_t recv_pair[2];
+                MPI_Recv(recv_pair, 2, MPI_INT64_T, 0, 0, *(distributor_->getWorkGroupCommunicator()), MPI_STATUS_IGNORE);
+                best_batchsizes.first = recv_pair[0];
+                best_batchsizes.second =  recv_pair[1];
+            }
+        }else{
+            best_batchsizes = {0, input_shape_[0]};
         }
-        MPI_Bcast(&best_batchsizes.first, 1, MPI_INT64_T, 0, *(distributor_->getWorkGroupCommunicator()) );
-        MPI_Bcast(&best_batchsizes.second, 1, MPI_INT64_T, 0, *(distributor_->getWorkGroupCommunicator()) );
+        //MPI_Bcast(&best_batchsizes.first, 1, MPI_INT64_T, 0, *(distributor_->getWorkGroupCommunicator()) );
+        //MPI_Bcast(&best_batchsizes.second, 1, MPI_INT64_T, 0, *(distributor_->getWorkGroupCommunicator()) );
     }
     else
     {
@@ -225,11 +313,11 @@ void AIxeleratorService<T>::initInferenceStrategy(std::pair<int64_t, int64_t> be
 
     // setup data pointers accordingly
     input_data_host_ = &input_data_[0];
-    int64_t num_input_elem_per_batch = std::accumulate(std::next(input_shape_.begin(), 1), input_shape_.end(), 1, std::multiplies<int>());
+    int64_t num_input_elem_per_batch = std::accumulate(std::next(input_shape_.begin(), 1), input_shape_.end(), (int64_t)1, std::multiplies<int64_t>());
     input_data_device_ = &input_data_[batch_host * num_input_elem_per_batch];
 
     output_data_host_ = &output_data_[0];
-    int64_t num_output_elem_per_batch = std::accumulate(std::next(output_shape_.begin(), 1), output_shape_.end(), 1, std::multiplies<int>());
+    int64_t num_output_elem_per_batch = std::accumulate(std::next(output_shape_.begin(), 1), output_shape_.end(), (int64_t)1, std::multiplies<int64_t>());
     output_data_device_ = &output_data_[batch_host * num_output_elem_per_batch];
 
     // create communicator only for the device partition of input_data

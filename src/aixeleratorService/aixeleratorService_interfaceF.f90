@@ -7,7 +7,9 @@ implicit none
 
 interface
 
-    function createAIxeleratorServiceDouble_C(model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data, batchsize, app_comm) result(aixelerator) bind(C, name="createAIxeleratorServiceDouble_F")
+    function createAIxeleratorServiceDouble_C(model_file, input_shape, num_input_dims, input_data, &
+        output_shape, num_output_dims, output_data, batchsize, app_comm) &
+        result(aixelerator) bind(C, name="createAIxeleratorServiceDouble_F")
         import 
         character(kind=C_char) :: model_file(*)
         integer(C_int64_t) :: input_shape(*)
@@ -22,7 +24,9 @@ interface
         type(C_ptr) :: aixelerator
     end function
 
-    function createAIxeleratorServiceFloat_C(model_file, input_shape, num_input_dims, input_data, output_shape, num_output_dims, output_data, batchsize, app_comm) result(aixelerator) bind(C, name="createAIxeleratorServiceFloat_F")
+    function createAIxeleratorServiceFloat_C(model_file, input_shape, num_input_dims, input_data, &
+        output_shape, num_output_dims, output_data, batchsize, app_comm) &
+        result(aixelerator) bind(C, name="createAIxeleratorServiceFloat_F")
         import 
         character(kind=C_char) :: model_file(*)
         integer(C_int64_t) :: input_shape(*)
