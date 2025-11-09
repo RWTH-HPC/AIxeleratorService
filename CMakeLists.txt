@@ -28,10 +28,6 @@ else()
     message(STATUS "CUDA language not available on this system.")
 endif()
 
-include(FortranCInterface)
-FortranCInterface_VERIFY(CXX)
-set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
-
 # CMP0074: find_package() uses <PackageName>_ROOT variables.
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
@@ -54,6 +50,13 @@ option(WITH_ONNX "Build with support for ONNX backend" OFF)
 set(ONNXRUNTIME_VERSION "1.22.0" CACHE STRING "Version of prebuilt ONNXRuntime to use.")
 option(WITH_SCOREP "Build with Score-P instrumentation for profiling/tracing" OFF)
 option(WITH_HWLOC "Build with HWLOC and therefore GPU affine RR distribution" OFF)
+option(WITH_FORTRAN_INTERFACE "Build Fortran interface to use AIxeleratorService in Fortran programs." OFF)
+
+if(WITH_FORTRAN_INTERFACE)
+  include(FortranCInterface)
+  FortranCInterface_VERIFY(CXX)
+  set(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
+endif()
 
 if(CMAKE_CUDA_COMPILER)
   if(WITH_TORCH)

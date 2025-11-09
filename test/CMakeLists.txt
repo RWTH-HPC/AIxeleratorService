@@ -391,7 +391,7 @@ if(WITH_TORCH)
     )
 endif()
 
-
+if(WITH_FORTRAN_INTERFACE)
 if(WITH_TORCH)
     message(STATUS "Creating TorchInference Fortran Interface Test")
     add_executable(testTorchInference_interfaceF.x testTorchInferenceFromF.f90)
@@ -411,6 +411,7 @@ if(WITH_TORCH)
         TARGETS testTorchInference_interfaceF.x
         RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
     )
+endif()
 endif()
 
 
@@ -462,7 +463,7 @@ install(
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
 )
 
-
+if(WITH_FORTRAN_INTERFACE)
 message(STATUS "Creating AIxeleratorService Fortran Interface Test")
 add_executable(testAIxeleratorService_interfaceF.x testAIxeleratorServiceFromF.f90)
 target_sources(
@@ -512,6 +513,7 @@ install(
     TARGETS testAIxeleratorService_interfaceF.x
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin    
 )
+endif()
 
 if(WITH_SOL)
     message(STATUS "Creating SOL Inference Test")

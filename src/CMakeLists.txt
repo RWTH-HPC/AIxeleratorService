@@ -8,8 +8,14 @@ target_sources(
             communicationStrategy/nonBlockingPtoPCommunication.cpp
             aixeleratorService/aixeleratorService.cpp
             aixeleratorService/aixeleratorService_interfaceC.cpp
+)
+if(WITH_FORTRAN_INTERFACE)
+target_sources(
+    AIxeleratorServiceLib 
+        PRIVATE 
             aixeleratorService/aixeleratorService_interfaceF.f90
 )
+endif()
 
 target_include_directories(
     AIxeleratorServiceLib
@@ -93,10 +99,12 @@ install(
 # )
 
 # install Fortran module
-install(
-    FILES ${CMAKE_Fortran_MODULE_DIRECTORY}/aixelerator_service_mod.mod
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/include/aixeleratorService
-)
+if(WITH_FORTRAN_INTERFACE)
+    install(
+        FILES ${CMAKE_Fortran_MODULE_DIRECTORY}/aixelerator_service_mod.mod
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/include/aixeleratorService
+    )
+endif()
 
 # install shared library
 install(
