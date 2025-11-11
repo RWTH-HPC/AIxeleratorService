@@ -190,7 +190,13 @@ if(WITH_TORCH)
   message(STATUS "TORCH_SOURCE_DIR = ${TORCH_SOURCE_DIR}")
 
   # TODO: download libtorch CPU or GPU
-  set(TORCH_DOWNLOAD_URL "https://download.pytorch.org/libtorch/${TORCH_ARCH}/libtorch-cxx11-abi-shared-with-deps-${TORCH_VERSION}%2B${TORCH_ARCH}.zip")
+  # Torch changed download URL starting with version 2.8.0 and dropped "cxx11-abi" from the URL!
+  if(TORCH_VERSION VERSION_GREATER_EQUAL "2.8.0")
+    set(TORCH_DOWNLOAD_URL "https://download.pytorch.org/libtorch/${TORCH_ARCH}/libtorch-shared-with-deps-${TORCH_VERSION}%2B${TORCH_ARCH}.zip")
+  else()
+    set(TORCH_DOWNLOAD_URL "https://download.pytorch.org/libtorch/${TORCH_ARCH}/libtorch-cxx11-abi-shared-with-deps-${TORCH_VERSION}%2B${TORCH_ARCH}.zip")
+  endif()
+  
   FetchContent_Declare(
     TorchDownload
     URL ${TORCH_DOWNLOAD_URL}
